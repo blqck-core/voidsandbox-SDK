@@ -6,5 +6,5 @@ Open-Source sandbox game on [SourceTech Engine](https://github.com/blqck-core/So
 
 ## Links
 
-* https://www.moddb.com/games/voidsandbox - VøidSandbox ModDB page
-* https://discord.gg/TZubjHHKty - VøidSandbox Discord
+* https://www.moddb.com/games/voidsandbox - Void Sandbox ModDB page
+* https://discord.gg/TZubjHHKty - Void Sandbox Discord
