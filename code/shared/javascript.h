@@ -1,10 +1,9 @@
 // Copyright (C) 2023-2026 Noire.dev
 // OpenSandbox — GPLv2; see LICENSE for details.
 
-#include "../game/bg_lib.h"
-#include "q_platform.h"
-#include "q_cvars.h"
-#include "q_shared.h"
+#include "system.h"
+#include "engine.h"
+#include "core.h"
 #ifdef GAME
 #include "../game/bg_public.h"
 #include "../game/g_public.h"
@@ -12,16 +11,17 @@
 #include "../game/ai_main.h"
 #endif
 #ifdef CGAME
-#include "../renderer/tr_types.h"
+#include "../shared/client/renderer.h"
 #include "../game/bg_public.h"
 #include "../cgame/cg_public.h"
+#include "../shared/client/input.h"
 #include "../cgame/cg_local.h"
 #endif
 #ifdef UI
-#include "../renderer/tr_types.h"
+#include "../shared/client/renderer.h"
 #include "../game/bg_public.h"
 #include "../ui/ui_public.h"
-#include "../client/keycodes.h"
+#include "../shared/client/input.h"
 #include "../ui/ui_local.h"
 #endif
 

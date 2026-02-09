@@ -2,7 +2,7 @@
 // Copyright (C) 2023-2025 Noire.dev
 // OpenSandbox — GPLv2; see LICENSE for details.
 
-#include "../qcommon/js_local.h"
+#include "../shared/javascript.h"
 
 static float s_quadFactor;
 static vec3_t forward, right, up;

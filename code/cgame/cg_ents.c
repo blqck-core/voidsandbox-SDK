@@ -2,7 +2,7 @@
 // Copyright (C) 2023-2025 Noire.dev
 // OpenSandbox — GPLv2; see LICENSE for details.
 
-#include "../qcommon/js_local.h"
+#include "../shared/javascript.h"
 
 static void CG_PositionEntityOnTag(refEntity_t *entity, const refEntity_t *parent, qhandle_t parentModel, char *tagName) {
 	int i;

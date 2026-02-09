@@ -9,10 +9,9 @@ ui_gameinfo
 ui_menu
 ui_players
 ui_qmenu
-bg_lib
 bg_misc
-q_cvars
-q_math
-q_shared
-js_main
-js_func
+javascript
+javascript_func
+system
+engine
+core

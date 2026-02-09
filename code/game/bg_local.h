@@ -2,7 +2,7 @@
 // Copyright (C) 2023-2025 Noire.dev
 // OpenSandbox — GPLv2; see LICENSE for details.
 
-#include "../qcommon/js_local.h"
+#include "../shared/javascript.h"
 
 #define MIN_WALK_NORMAL 0.7f // can't walk on very steep slopes
 #define STEPSIZE 18

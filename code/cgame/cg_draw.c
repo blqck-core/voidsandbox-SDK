@@ -2,7 +2,7 @@
 // Copyright (C) 2023-2025 Noire.dev
 // OpenSandbox — GPLv2; see LICENSE for details.
 
-#include "../qcommon/js_local.h"
+#include "../shared/javascript.h"
 
 static queued3DString_t queued3DStrings[MAX_3D_STRING_QUEUE];
 static int queued3DStringCount = 0;

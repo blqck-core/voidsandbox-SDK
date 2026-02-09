@@ -76,6 +76,21 @@ double acos(double x);
 double atan2(double y, double x);
 double sqrt(double x);
 
+#define QDECL
+#define ID_INLINE
+
+// endianness
+short ShortSwap(short l);
+int LongSwap(int l);
+float FloatSwap(const float *f);
+
+#define LittleShort
+#define LittleLong
+#define LittleFloat
+#define BigShort
+#define BigLong
+#define BigFloat
+
 /**********************************************************************
   VM Considerations
 
@@ -90,11 +105,6 @@ double sqrt(double x);
   Remember, if you use a C library function that is not defined in bg_lib.c,
   you will have to add your own version for support in the VM.
  **********************************************************************/
-
-#include "../game/bg_lib.h"
-
-#include "q_platform.h"
-#include "q_cvars.h"
 
 typedef int intptr_t;
 typedef unsigned char byte;
@@ -323,59 +333,6 @@ float NormalizeColor(const vec3_t in, vec3_t out);
 float RadiusFromBounds(const vec3_t mins, const vec3_t maxs);
 void AddPointToBounds(const vec3_t v, vec3_t mins, vec3_t maxs);
 
-#if defined(__QVM_MATH)
-
-ID_INLINE int VectorCompare(const vec3_t v1, const vec3_t v2) {
-	if(v1[0] != v2[0] || v1[1] != v2[1] || v1[2] != v2[2]) {
-		return 0;
-	}
-	return 1;
-}
-
-ID_INLINE vec_t VectorLength(const vec3_t v) { return (vec_t)sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]); }
-
-ID_INLINE vec_t VectorLengthSquared(const vec3_t v) { return (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]); }
-
-ID_INLINE vec_t Distance(const vec3_t p1, const vec3_t p2) {
-	vec3_t v;
-
-	VectorSubtract(p2, p1, v);
-	return VectorLength(v);
-}
-
-ID_INLINE vec_t DistanceSquared(const vec3_t p1, const vec3_t p2) {
-	vec3_t v;
-
-	VectorSubtract(p2, p1, v);
-	return v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
-}
-
-// fast vector normalize routine that does not check to make sure
-// that length != 0, nor does it return length, uses rsqrt approximation
-ID_INLINE void VectorNormalizeFast(vec3_t v) {
-	float ilength;
-
-	ilength = Q_rsqrt(DotProduct(v, v));
-
-	v[0] *= ilength;
-	v[1] *= ilength;
-	v[2] *= ilength;
-}
-
-ID_INLINE void VectorInverse(vec3_t v) {
-	v[0] = -v[0];
-	v[1] = -v[1];
-	v[2] = -v[2];
-}
-
-ID_INLINE void CrossProduct(const vec3_t v1, const vec3_t v2, vec3_t cross) {
-	cross[0] = v1[1] * v2[2] - v1[2] * v2[1];
-	cross[1] = v1[2] * v2[0] - v1[0] * v2[2];
-	cross[2] = v1[0] * v2[1] - v1[1] * v2[0];
-}
-
-#else
-
 int VectorCompare(const vec3_t v1, const vec3_t v2);
 vec_t VectorLength(const vec3_t v);
 vec_t VectorLengthSquared(const vec3_t v);
@@ -384,8 +341,6 @@ vec_t DistanceSquared(const vec3_t p1, const vec3_t p2);
 void VectorNormalizeFast(vec3_t v);
 void VectorInverse(vec3_t v);
 void CrossProduct(const vec3_t v1, const vec3_t v2, vec3_t cross);
-
-#endif
 
 vec_t VectorNormalize(vec3_t v); // returns vector length
 vec_t VectorNormalize2(const vec3_t v, vec3_t out);
@@ -525,7 +480,51 @@ COLLISION DETECTION
 
 ==============================================================
 */
-#include "surfaceflags.h" // shared with the q3map utility
+#define CONTENTS_SOLID 1 // an eye is never valid in a solid
+#define CONTENTS_LAVA 8
+#define CONTENTS_SLIME 16
+#define CONTENTS_WATER 32
+#define CONTENTS_FOG 64
+#define CONTENTS_NOTTEAM1 128
+#define CONTENTS_NOTTEAM2 256
+#define CONTENTS_NOBOTCLIP 512
+#define CONTENTS_AREAPORTAL 32768
+#define CONTENTS_PLAYERCLIP 65536
+#define CONTENTS_MONSTERCLIP 131072
+#define CONTENTS_TELEPORTER 262144
+#define CONTENTS_JUMPPAD 524288
+#define CONTENTS_CLUSTERPORTAL 1048576
+#define CONTENTS_DONOTENTER 2097152
+#define CONTENTS_BOTCLIP 4194304
+#define CONTENTS_MOVER 8388608
+#define CONTENTS_ORIGIN 16777216
+#define CONTENTS_BODY 33554432
+#define CONTENTS_CORPSE 67108864
+#define CONTENTS_DETAIL 134217728
+#define CONTENTS_STRUCTURAL 268435456
+#define CONTENTS_TRANSLUCENT 536870912
+#define CONTENTS_TRIGGER 1073741824
+#define CONTENTS_NODROP 2147483648
+
+#define SURF_NODAMAGE 0x1 // never give falling damage
+#define SURF_SLICK 0x2    // effects game physics
+#define SURF_SKY 0x4      // lighting from environment map
+#define SURF_LADDER 0x8
+#define SURF_NOIMPACT 0x10       // don't make missile explosions
+#define SURF_NOMARKS 0x20        // don't leave missile marks
+#define SURF_FLESH 0x40          // make flesh sounds and effects
+#define SURF_NODRAW 0x80         // don't generate a drawsurface at all
+#define SURF_HINT 0x100          // make a primary bsp splitter
+#define SURF_SKIP 0x200          // completely ignore, allowing non-closed brushes
+#define SURF_NOLIGHTMAP 0x400    // surface doesn't need a lightmap
+#define SURF_POINTLIGHT 0x800    // generate lighting info at vertexes
+#define SURF_METALSTEPS 0x1000   // clanking footsteps
+#define SURF_NOSTEPS 0x2000      // no footstep sounds
+#define SURF_NONSOLID 0x4000     // don't collide against curves with this set
+#define SURF_LIGHTFILTER 0x8000  // act as a light filter during q3map -light
+#define SURF_ALPHASHADOW 0x10000 // do per-pixel light shadow casting in q3map
+#define SURF_NODLIGHT 0x20000    // don't dlight even if solid (solid lava, skies)
+#define SURF_DUST 0x40000        // leave a dust trail when walking on this surface
 
 // plane_t structure
 // !!! if this is changed, it must be changed in asm code too !!!
@@ -849,83 +848,4 @@ typedef struct qtime_s {
 #define SAY_TELL 2
 
 float VectorDistance(const vec3_t v1, const vec3_t v2);
-
-/*
-=====================
-UI colors
-=====================
-*/
-extern vec4_t color_black;
-extern vec4_t color_white;
-extern vec4_t color_grey;
-extern vec4_t color_dim;
-extern vec4_t color_disabled;
-extern vec4_t color_select;
-extern vec4_t color_highlight;
-
-extern vec4_t customcolor_crosshair;
-
-/*
-======================
-Font and UI system
-======================
-*/
-#ifndef GAME
-
-#define CGUI_COLORCOUNT 200
-typedef struct {
-    qhandle_t defaultFont[5];
-	qhandle_t whiteShader;
-	qhandle_t corner;
-	float scale;
-	float bias;
-	float wideoffset;
-	float colors[CGUI_COLORCOUNT][4];
-} cgui_t;
-extern cgui_t cgui;
-
-#define BASEFONT_WIDTH 9
-#define BASEFONT_HEIGHT 11
-#define FONT_WIDTH 0.64
-#define BASEFONT_INDENT (BASEFONT_WIDTH * FONT_WIDTH)
-
-int ST_GetPlayerMove(int buttons, int type);
-void ST_AdjustFrom640(float *x, float *y, float *w, float *h);
-void ST_DrawRoundedRect(float x, float y, float width, float height, float radius, float *color);
-void ST_DrawShader(float x, float y, float w, float h, const char *file);
-int ST_ColorEscapes(const char *str);
-void ST_InitCGUI(const char *font);
-void ST_UpdateCGUI(void);
-int ST_StringCount(const char *str);
-void ST_DrawChar(float x, float y, int ch, int style, float *color, float size);
-float ST_StringWidth(const char *str, float size);
-void ST_DrawString(float x, float y, const char *str, int style, float *color, float fontSize);
-
-#endif
-
-// sharedsyscalls
-void trap_Print(const char *string);
-void trap_Error(const char *string);
-int trap_Milliseconds(void);
-void cvarRegister(const char *name, const char *defaultValue, int flags);
-int cvarID(const char *name);
-void cvarUpdate(cvar_t *vmCvar, int cvarID);
-void cvarReload(void);
-void cvarSet(const char *name, const char *value);
-int trap_Argc(void);
-void trap_Argv(int n, char *buffer, int bufferLength);
-void trap_Args(char *buffer, int bufferLength);
-int FS_Open(const char *qpatph, fileHandle_t *f, fsMode_t mode);
-void FS_Read(void *buffer, int len, fileHandle_t f);
-void FS_Write(const void *buffer, int len, fileHandle_t f);
-void FS_Close(fileHandle_t f);
-int FS_List(const char *path, const char *extension, char *listbuf, int bufsize);
-void trap_Cmd(int exec_when, const char *text);
-void trap_RealTime(qtime_t *qtime);
-void trap_System(const char *command);
-
-void *memset(void *dest, int c, size_t count);
-void *memcpy(void *dest, const void *src, size_t count);
-char *strncpy(char *strDest, const char *strSource, size_t count);
-// other in mathlib
 #endif // __Q_SHARED_H

@@ -29,7 +29,6 @@ cd linux/build/game
 # ########################################
 
 $cc ../../../code/game/ai_main.c
-$cc ../../../code/game/bg_lib.c
 $cc ../../../code/game/bg_misc.c
 $cc ../../../code/game/bg_pmove.c
 $cc ../../../code/game/bg_slidemove.c
@@ -42,26 +41,22 @@ $cc ../../../code/game/g_combat.c
 $cc ../../../code/game/g_items.c
 $cc ../../../code/game/g_main.c
 $cc ../../../code/game/g_misc.c
-$cc ../../../code/game/g_mover.c
 $cc ../../../code/game/g_physics.c
 $cc ../../../code/game/g_sandbox.c
 $cc ../../../code/game/g_session.c
 $cc ../../../code/game/g_spawn.c
 $cc ../../../code/game/g_svcmds.c
-$cc ../../../code/game/g_target.c
-$cc ../../../code/game/g_team.c
-$cc ../../../code/game/g_trigger.c
 $cc ../../../code/game/g_utils.c
 $cc ../../../code/game/g_weapon.c
 
 cp ../../../code/game/g_syscalls.asm ..
 cp ../../../code/q_sharedsyscalls.asm ..
 
-$cc ../../../code/qcommon/q_cvars.c
-$cc ../../../code/qcommon/q_math.c
-$cc ../../../code/qcommon/q_shared.c
-$cc ../../../code/qcommon/js_main.c
-$cc ../../../code/qcommon/js_func.c
+$cc ../../../code/shared/javascript.c
+$cc ../../../code/shared/javascript_func.c
+$cc ../../../code/shared/system.c
+$cc ../../../code/shared/engine.c
+$cc ../../../code/shared/core.c
 
 
 echo "-----------------"
@@ -119,7 +114,6 @@ $cc ../../../code/cgame/cg_unlagged.c
 $cc ../../../code/cgame/cg_view.c
 $cc ../../../code/cgame/cg_weapons.c
 
-$cc ../../../code/game/bg_lib.c
 $cc ../../../code/game/bg_misc.c
 $cc ../../../code/game/bg_pmove.c
 $cc ../../../code/game/bg_slidemove.c
@@ -128,11 +122,11 @@ cp ../../../code/cgame/cg_syscalls.asm ..
 cp ../../../code/q_sharedsyscalls.asm ..
 cp ../../../code/q_sharedsyscalls_client.asm ..
 
-$cc ../../../code/qcommon/q_cvars.c
-$cc ../../../code/qcommon/q_math.c
-$cc ../../../code/qcommon/q_shared.c
-$cc ../../../code/qcommon/js_main.c
-$cc ../../../code/qcommon/js_func.c
+$cc ../../../code/shared/javascript.c
+$cc ../../../code/shared/javascript_func.c
+$cc ../../../code/shared/system.c
+$cc ../../../code/shared/engine.c
+$cc ../../../code/shared/core.c
 
 echo "-----------------"
 echo "cgame.qvm compiled"
@@ -171,31 +165,22 @@ cd linux/build/ui
 
 $cc ../../../code/ui/ui_atoms.c
 $cc ../../../code/ui/ui_connect.c
-#$cc ../../../code/ui/ui_controls.c
 $cc ../../../code/ui/ui_gameinfo.c
 $cc ../../../code/ui/ui_main.c
 $cc ../../../code/ui/ui_menu.c
-#$cc ../../../code/ui/ui_newgame.c
-#$cc ../../../code/ui/ui_options.c
-#$cc ../../../code/ui/ui_playermodel.c
-$cc ../../../code/ui/ui_players.c
 $cc ../../../code/ui/ui_qmenu.c
-#$cc ../../../code/ui/ui_servers.c
-#$cc ../../../code/ui/ui_settings.c
-#$cc ../../../code/ui/ui_spawnmenu.c
 
 cp ../../../code/ui/ui_syscalls.asm ..
 cp ../../../code/q_sharedsyscalls.asm ..
 cp ../../../code/q_sharedsyscalls_client.asm ..
 
-$cc ../../../code/game/bg_lib.c
 $cc ../../../code/game/bg_misc.c
 
-$cc ../../../code/qcommon/q_cvars.c
-$cc ../../../code/qcommon/q_math.c
-$cc ../../../code/qcommon/q_shared.c
-$cc ../../../code/qcommon/js_main.c
-$cc ../../../code/qcommon/js_func.c
+$cc ../../../code/shared/javascript.c
+$cc ../../../code/shared/javascript_func.c
+$cc ../../../code/shared/system.c
+$cc ../../../code/shared/engine.c
+$cc ../../../code/shared/core.c
 
 echo "-----------------"
 echo "ui.qvm compiled"

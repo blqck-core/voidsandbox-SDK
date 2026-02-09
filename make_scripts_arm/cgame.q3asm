@@ -21,12 +21,11 @@ cg_snapshot
 cg_unlagged
 cg_view
 cg_weapons
-bg_lib
 bg_misc
 bg_pmove
 bg_slidemove
-q_cvars
-q_math
-q_shared
-js_main
-js_func
+javascript
+javascript_func
+system
+engine
+core

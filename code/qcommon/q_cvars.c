@@ -2,7 +2,7 @@
 // Copyright (C) 2023-2025 Noire.dev
 // OpenSandbox — GPLv2; see LICENSE for details.
 
-#include "q_shared.h"
+#include "../qcommon/js_local.h"
 
 cvar_t cvarStorage[MAX_CVARS];
 

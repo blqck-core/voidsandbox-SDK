@@ -2,7 +2,7 @@
 // Copyright (C) 2023-2025 Noire.dev
 // OpenSandbox — GPLv2; see LICENSE for details.
 
-#include "../qcommon/js_local.h"
+#include "../shared/javascript.h"
 
 static void CG_Init(int serverMessageNum, int serverCommandSequence, int clientNum);
 static void CG_Shutdown(void);

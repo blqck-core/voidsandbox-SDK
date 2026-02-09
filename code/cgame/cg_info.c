@@ -2,7 +2,7 @@
 // Copyright (C) 2023-2025 Noire.dev
 // OpenSandbox — GPLv2; see LICENSE for details.
 
-#include "../qcommon/js_local.h"
+#include "../shared/javascript.h"
 
 void CG_LoadingString(const char *s, float value) {
 	Q_StringCopy(cg.infoScreenText, va("Loading... %s", s), sizeof(cg.infoScreenText));

@@ -2,7 +2,7 @@
 // Copyright (C) 2023-2025 Noire.dev
 // OpenSandbox — GPLv2; see LICENSE for details.
 
-#include "../qcommon/js_local.h"
+#include "../shared/javascript.h"
 
 static void SB_Shooter_Use(gentity_t *ent, gentity_t *other, gentity_t *activator) {
 	vec3_t dir;

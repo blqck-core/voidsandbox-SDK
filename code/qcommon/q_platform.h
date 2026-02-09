@@ -2,9 +2,6 @@
 // Copyright (C) 2023-2025 Noire.dev
 // OpenSandbox — GPLv2; see LICENSE for details.
 
-#ifndef __Q_PLATFORM_H
-#define __Q_PLATFORM_H
-
 #define QDECL
 #define ID_INLINE
 
@@ -19,5 +16,3 @@ float FloatSwap(const float *f);
 #define BigShort
 #define BigLong
 #define BigFloat
-
-#endif
