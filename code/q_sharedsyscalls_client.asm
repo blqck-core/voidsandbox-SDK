@@ -19,3 +19,5 @@ equ trap_R_LerpTag                          -1516
 equ trap_GetGlconfig                        -1517
 equ trap_Key_GetCatcher                     -1518
 equ trap_R_RemapShader                      -1519
+equ	trap_Key_KeynumToStringBuf				-1520
+equ	trap_Key_GetBindingBuf					-1521

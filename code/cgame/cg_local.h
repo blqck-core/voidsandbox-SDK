@@ -79,9 +79,6 @@ typedef struct {
 	qboolean yawing;
 	float pitchAngle;
 	qboolean pitching;
-	int animationNumber; // may include ANIM_TOGGLEBIT
-	animation_t *animation;
-	int animationTime; // time when the first frame of the animation will be exact
 } lerpFrame_t;
 
 // Notifications
@@ -142,13 +139,11 @@ typedef struct markPoly_s {
 	polyVert_t verts[MAX_VERTS_ON_POLY];
 } markPoly_t;
 
-typedef enum { LE_EXPLOSION, LE_SPRITE_EXPLOSION, LE_FRAGMENT, LE_FRAGMENT2, LE_MOVE_SCALE_FADE, LE_FALL_SCALE_FADE, LE_FADE_RGB, LE_SCALE_FADE, LE_KAMIKAZE, LE_INVULIMPACT, LE_INVULJUICED, LE_SHOWREFENTITY } leType_t;
+typedef enum { LE_EXPLOSION, LE_SPRITE_EXPLOSION, LE_FRAGMENT, LE_FRAGMENT2, LE_MOVE_SCALE_FADE, LE_FALL_SCALE_FADE, LE_FADE_RGB, LE_SCALE_FADE, LE_SHOWREFENTITY } leType_t;
 
 typedef enum {
 	LEF_PUFF_DONT_SCALE = 0x0001, // do not scale size over time
 	LEF_TUMBLE = 0x0002,          // tumble over time, used for ejecting shells
-	LEF_SOUND1 = 0x0004,          // sound 1 for kamikaze
-	LEF_SOUND2 = 0x0008           // sound 2 for kamikaze
 } leFlag_t;
 
 typedef enum { LEMT_NONE, LEMT_BLOOD } leMarkType_t; // fragment local entities can leave marks on walls
@@ -197,77 +192,13 @@ typedef struct {
 
 typedef struct {
 	qboolean infoValid;
-
 	char name[MAX_QPATH];
 	team_t team;
-
 	int isNPC; // 0 = not NPC, 1 = NPC
-
-	int headR;
-	int headG;
-	int headB;
-	int modelR;
-	int modelG;
-	int modelB;
-	int legsR;
-	int legsG;
-	int legsB;
-	int physR;
-	int physG;
-	int physB;
 	int vehicleNum;
-
-	int location; // location index for team mode
-	int health;   // you only get this info about your teammates
-	int armor;
-	int curWeapon;
-
 	int flashlight;
-
-	int powerups; // so can display quad/flag status
-
-	int invulnerabilityStartTime;
-	int invulnerabilityStopTime;
-
-	int breathPuffTime;
-
-	// when clientinfo is changed, the loading of models/skins/sounds
-	// can be deferred until you are dead, to prevent hitches in
-	// gameplay
-	char modelName[MAX_QPATH];
-	char skinName[MAX_QPATH];
-	char headModelName[MAX_QPATH];
-	char headSkinName[MAX_QPATH];
-	char legsModelName[MAX_QPATH];
-	char legsSkinName[MAX_QPATH];
-
-	qboolean fixedlegs;  // true if legs yaw is always the same as torso yaw
-	qboolean fixedtorso; // true if torso never changes yaw
-
-	vec3_t headOffset; // move head in icon views
-	footstep_t footsteps;
-	gender_t gender; // from model
-
-	qhandle_t legsModel;
-	qhandle_t legsSkin;
-	qhandle_t legsShader;
-
-	qhandle_t torsoModel;
-	qhandle_t torsoSkin;
-	qhandle_t torsoShader;
-
-	qhandle_t headModel;
-	qhandle_t headSkin;
-	qhandle_t headShader;
-
-	qhandle_t plusModel;
-	qhandle_t plusSkin;
-
-	qhandle_t modelIcon;
-
-	animation_t animations[MAX_TOTALANIMATIONS];
-
-	sfxHandle_t sounds[MAX_CUSTOM_SOUNDS];
+	char playerSkinName[MAX_QPATH];
+	qhandle_t playerSkin;
 } clientInfo_t;
 
 // each WP_* weapon enum has an associated weaponInfo_t
@@ -450,9 +381,6 @@ typedef struct {
 
 	// time that the client will respawn. If 0 = the player is alive.
 	int respawnTime;
-
-	int redObeliskHealth;
-	int blueObeliskHealth;
 } cg_t;
 
 // all of the model, shader, and sound references that are
@@ -567,20 +495,7 @@ typedef struct {
 
 	// special effects models
 	qhandle_t teleportEffectModel;
-
-	qhandle_t kamikazeEffectModel;
-	qhandle_t kamikazeShockWave;
-	qhandle_t kamikazeHeadModel;
-	qhandle_t kamikazeHeadTrail;
-	qhandle_t guardPowerupModel;
-	qhandle_t scoutPowerupModel;
-	qhandle_t doublerPowerupModel;
-	qhandle_t ammoRegenPowerupModel;
-	qhandle_t invulnerabilityImpactModel;
-	qhandle_t invulnerabilityJuicedModel;
 	qhandle_t dustPuffShader;
-
-	qhandle_t invulnerabilityPowerupModel;
 
 	// postprocess
 	qhandle_t postProcess;
@@ -613,18 +528,6 @@ typedef struct {
 	sfxHandle_t sfx_chghit;
 	sfxHandle_t sfx_chghitflesh;
 	sfxHandle_t sfx_chghitmetal;
-	sfxHandle_t kamikazeExplodeSound;
-	sfxHandle_t kamikazeImplodeSound;
-	sfxHandle_t kamikazeFarSound;
-	sfxHandle_t useInvulnerabilitySound;
-	sfxHandle_t invulnerabilityImpactSound1;
-	sfxHandle_t invulnerabilityImpactSound2;
-	sfxHandle_t invulnerabilityImpactSound3;
-	sfxHandle_t invulnerabilityJuicedSound;
-	sfxHandle_t obeliskHitSound1;
-	sfxHandle_t obeliskHitSound2;
-	sfxHandle_t obeliskHitSound3;
-	sfxHandle_t obeliskRespawnSound;
 
 	sfxHandle_t gibSound;
 	sfxHandle_t gibBounce1Sound;
@@ -755,7 +658,6 @@ void CG_InitConsoleCommands(void);
 void CG_Add3DString(float x, float y, float z, const char *str, int style, const vec4_t color, float fontSize, float min, float max, qboolean useTrace);
 void CG_DrawHead(float x, float y, float w, float h, int clientNum);
 void CG_AddToGenericConsole(const char *str, console_t *console);
-void CG_CenterPrint(const char *str, int y, int charWidth);
 void CG_AddNotify(const char *text, int type, int number);
 void CG_DrawActive(void);
 
@@ -770,11 +672,6 @@ void CG_BubbleTrail(vec3_t start, vec3_t end, float spacing);
 localEntity_t *CG_SmokePuff(const vec3_t p, const vec3_t vel, float radius, float r, float g, float b, float a, float duration, int startTime, int fadeInTime, int leFlags, qhandle_t hShader);
 void CG_SpawnEffect(vec3_t org);
 void CG_LightningBoltBeam(vec3_t start, vec3_t end);
-void CG_KamikazeEffect(vec3_t org);
-void CG_ObeliskExplode(vec3_t org, int entityNum);
-void CG_ObeliskPain(vec3_t org);
-void CG_InvulnerabilityImpact(vec3_t org, vec3_t angles);
-void CG_InvulnerabilityJuiced(vec3_t org);
 localEntity_t *CG_MakeExplosion(vec3_t origin, vec3_t dir, qhandle_t hModel, qhandle_t shader, int msec, qboolean isSprite);
 void CG_Bleed(vec3_t origin, int entityNum);
 void CG_GibPlayer(vec3_t playerOrigin);
@@ -815,9 +712,7 @@ void CG_ImpactMark(qhandle_t markShader, const vec3_t origin, const vec3_t dir, 
 void CG_AddMarks(void);
 
 // cg_players.c
-sfxHandle_t CG_CustomSound(int clientNum, const char *soundName);
-void CG_NewClientInfo(int clientNum);
-void CG_ReloadPlayers(void);
+void CG_UpdateClientInfo(int clientNum);
 void CG_Player(centity_t *cent);
 void CG_ResetPlayerEntity(centity_t *cent);
 
@@ -854,7 +749,6 @@ void CG_DrawActiveFrame(int serverTime, qboolean demoPlayback);
 
 // cg_weapons.c
 void CG_RailTrail(clientInfo_t *ci, vec3_t start, vec3_t end, int weapon);
-void CG_GrappleTrail(centity_t *ent, const weaponInfo_t *wi);
 void CG_RegisterWeapon(int weaponNum);
 void CG_RegisterItemVisuals(int itemNum);
 void CG_AddPlayerWeapon(refEntity_t *parent, playerState_t *ps, centity_t *cent, int team, clientInfo_t *ci);
@@ -895,7 +789,7 @@ qboolean trap_GetSnapshot(int snapshotNumber, snapshot_t *snapshot);
 qboolean trap_GetServerCommand(int serverCommandNumber);
 int trap_GetCurrentCmdNumber(void);
 qboolean trap_GetUserCmd(int cmdNumber, usercmd_t *ucmd);
-void trap_SetUserCmdValue(int stateValue, float sensitivityScale);
+void trap_SetUserCmdValue(float sensitivityScale);
 int trap_Key_GetKey(const char *binding);
 void trap_S_AddRealLoopingSound(int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx);
 void trap_S_StopLoopingSound(int entnum);

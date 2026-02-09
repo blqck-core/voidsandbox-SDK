@@ -988,11 +988,57 @@ qboolean FS_FileExists(const char *filename) {
 	return qfalse;
 }
 
-/*
-=====================
-OpenSandbox UI colors
-=====================
-*/
+void QDECL print(const char *msg, ...) {
+	va_list argptr;
+	char text[2048];
+
+	va_start(argptr, msg);
+	Q_vsnprintf(text, sizeof(text), msg, argptr);
+	va_end(argptr);
+
+	trap_Print(text);
+}
+
+#ifdef GAME
+void QDECL broadcast(const char *msg, ...) {
+	va_list argptr;
+	char text[2048];
+
+	va_start(argptr, msg);
+	Q_vsnprintf(text, sizeof(text), msg, argptr);
+	va_end(argptr);
+
+	trap_SendServerCommand(-1, va("print \"%s\n\"", text));
+}
+#endif
+
+void QDECL error(const char *msg, ...) {
+	va_list argptr;
+	char text[2048];
+
+	va_start(argptr, msg);
+	Q_vsnprintf(text, sizeof(text), msg, argptr);
+	va_end(argptr);
+
+	trap_Error(text);
+}
+
+int ST_GetPlayerMove(int buttons, int type) {
+	if(type == PLAYER_MOVE_F && buttons & BMOVE_W && buttons & BMOVE_S) return 0;
+	else if(type == PLAYER_MOVE_F && buttons & BMOVE_W) return 127;
+	else if(type == PLAYER_MOVE_F && buttons & BMOVE_S) return -127;
+	
+	if(type == PLAYER_MOVE_R && buttons & BMOVE_A && buttons & BMOVE_D) return 0;
+	else if(type == PLAYER_MOVE_R && buttons & BMOVE_A) return -127;
+	else if(type == PLAYER_MOVE_R && buttons & BMOVE_D) return 127;
+	
+	if(type == PLAYER_MOVE_U && buttons & BMOVE_J && buttons & BMOVE_C) return 0;
+	else if(type == PLAYER_MOVE_U && buttons & BMOVE_J) return 127;
+	else if(type == PLAYER_MOVE_U && buttons & BMOVE_C) return -127;
+	
+	return 0;
+}
+
 vec4_t color_black = {0.00f, 0.00f, 0.00f, 1.00f};
 vec4_t color_white = {1.00f, 1.00f, 1.00f, 1.00f};
 vec4_t color_grey = {0.30f, 0.30f, 0.30f, 1.00f};
@@ -1207,8 +1253,6 @@ void ST_DrawChar(float x, float y, int ch, int style, float *color, float size) 
 
 float ST_StringWidth(const char *str, float size) {
 	const char *s;
-	int ch;
-	int charWidth;
 	float width;
 
 	s = str;
@@ -1218,19 +1262,12 @@ float ST_StringWidth(const char *str, float size) {
 			s += 2;
 			continue;
 		}
-		ch = *s & 255;
-		charWidth = BASEFONT_WIDTH * size;
-		if(charWidth != -1) {
-			width += charWidth * FONT_WIDTH;
-		}
+		width += BASEFONT_INDENT * size;
 		s++;
 	}
 
-	if(ifstrlenru(str)) {
-		return width * 0.5;
-	} else {
-		return width;
-	}
+	if(ifstrlenru(str)) return (width * 0.5) + BASEFONT_HEIGHT*(1.00-FONT_WIDTH);
+	else return width + BASEFONT_HEIGHT*(1.00-FONT_WIDTH);
 }
 
 void ST_DrawString(float x, float y, const char *str, int style, float *color, float fontSize) {
@@ -1272,30 +1309,6 @@ void ST_DrawString(float x, float y, const char *str, int style, float *color, f
 	}
 
 	ST_DrawChars(x, y, str, drawcolor, charw, charh, style, qfalse);
-}
-
-stAnim_t weaponSelectIn;
-stAnim_t weaponSelectOut;
-
-int anim_weaponSelect;
-
-void ST_AnimStart(stAnim_t *anim, int timeNow, int duration) {
-	anim->startTime = timeNow;
-	anim->duration = duration;
-}
-
-float ST_AnimValue(stAnim_t *anim, int timeNow) {
-	float t;
-	int elapsed;
-
-	elapsed = timeNow - anim->startTime;
-
-	if(elapsed >= anim->duration) return 0.0f;
-
-	if(elapsed < 0) return 1.0f;
-
-	t = (float)elapsed / (float)anim->duration;
-	return 1.0f - t;
 }
 
 void ST_AdjustFrom640(float *x, float *y, float *w, float *h) {

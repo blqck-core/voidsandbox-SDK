@@ -47,9 +47,6 @@ qboolean G_SpawnVector(const char *key, const char *defaultString, float *out) {
 	return present;
 }
 
-static void SP_EmptySpawn(gentity_t *ent) { G_SetOrigin(ent, ent->s.origin); }
-static void SP_DeleteSpawn(gentity_t *ent) { G_FreeEntity(ent); }
-
 typedef enum { F_INT, F_FLOAT, F_STRING, F_VECTOR, F_ANGLEHACK, F_IGNORE } fieldtype_t;
 
 typedef struct {
@@ -108,57 +105,9 @@ static field_t gameInfoFields[] = {
 
 // clang-format off
 spawn_t	gameInfoEntities[] = {
-	{"info_player_start", 			SP_info_player_start},
 	{"info_player_deathmatch", 		SP_info_player_deathmatch},
-	{"info_player_intermission", 	SP_EmptySpawn},
-	{"info_null", 					SP_DeleteSpawn},
-	{"info_notnull", 				SP_EmptySpawn},
-	{"info_camp", 					SP_EmptySpawn},
-	{"func_plat", 					SP_func_plat},
-	{"func_button", 				SP_func_button},
-	{"func_door", 					SP_func_door},
-	{"func_static", 				SP_func_static},
-	{"func_rotating", 				SP_func_rotating},
-	{"func_bobbing", 				SP_func_bobbing},
-	{"func_pendulum", 				SP_func_pendulum},
-	{"func_train", 					SP_func_train},
-	{"func_group", 					SP_DeleteSpawn},
-	{"trigger_always", 				SP_trigger_always},
-	{"trigger_multiple", 			SP_trigger_multiple},
-	{"trigger_push", 				SP_trigger_push},
-	{"trigger_teleport", 			SP_trigger_teleport},
-	{"trigger_hurt", 				SP_trigger_hurt},
-	{"target_give", 				SP_target_give},
-	{"target_delay", 				SP_target_delay},
-	{"target_speaker", 				SP_target_speaker},
-	{"target_print", 				SP_target_print},
-	{"target_teleporter", 			SP_target_teleporter},
-	{"target_relay", 				SP_target_relay},
-	{"target_kill", 				SP_target_kill},
-	{"target_position", 			SP_target_position},
-	{"target_location", 			SP_target_location},
-	{"target_push", 				SP_target_push},
-	{"light", 						SP_DeleteSpawn},
-	{"path_corner", 				SP_path_corner},
-	{"misc_teleporter_dest", 		SP_EmptySpawn},
-	{"misc_model", 					SP_DeleteSpawn},
-	{"misc_portal_surface", 		SP_misc_portal_surface},
-	{"misc_portal_camera", 			SP_misc_portal_camera},
-	{"shooter_rocket", 				SP_shooter_rocket},
-	{"shooter_grenade", 			SP_shooter_grenade},
-	{"shooter_plasma", 				SP_shooter_plasma},
-	{"team_CTF_redplayer", 			SP_EmptySpawn},
-	{"team_CTF_blueplayer", 		SP_EmptySpawn},
-	{"team_CTF_redspawn", 			SP_EmptySpawn},
-	{"team_CTF_bluespawn", 			SP_EmptySpawn},
-	{"team_redobelisk", 			SP_team_redobelisk},
-	{"team_blueobelisk", 			SP_team_blueobelisk},
-	{"team_neutralobelisk", 		SP_team_neutralobelisk},
-	{"script_variable", 			SP_script_variable},
-	{"script_cmd", 					SP_script_cmd},
 	{"sandbox_prop", 				SP_sandbox_prop},
 	{"sandbox_npc", 				SP_sandbox_npc},
-	{"item_botroam", 				SP_EmptySpawn},
 	{NULL, 0}
 };
 // clang-format on
@@ -179,40 +128,6 @@ static qboolean G_CallSpawn(gentity_t *ent) {
 	if(strcmp(ent->classname, "none") == 0) return qfalse;
 
 	Com_sprintf(itemname, sizeof(itemname), "%s", ent->classname);
-
-	if(cvarInt("g_gametype") == GT_OBELISK) {
-		if(strcmp(itemname, "team_CTF_redflag") == 0) {
-			Com_sprintf(itemname, sizeof(itemname), "%s", "team_redobelisk");
-		}
-		if(strcmp(itemname, "team_CTF_blueflag") == 0) {
-			Com_sprintf(itemname, sizeof(itemname), "%s", "team_blueobelisk");
-		}
-	}
-	if(cvarInt("g_gametype") == GT_HARVESTER) {
-		if(strcmp(itemname, "team_CTF_redflag") == 0) {
-			Com_sprintf(itemname, sizeof(itemname), "%s", "team_redobelisk");
-		}
-		if(strcmp(itemname, "team_CTF_blueflag") == 0) {
-			Com_sprintf(itemname, sizeof(itemname), "%s", "team_blueobelisk");
-		}
-		if(strcmp(itemname, "team_CTF_neutralflag") == 0) {
-			Com_sprintf(itemname, sizeof(itemname), "%s", "team_neutralobelisk");
-		}
-	}
-	if(cvarInt("g_gametype") == GT_FFA || cvarInt("g_gametype") == GT_TEAM) {
-		if(strcmp(itemname, "team_CTF_redplayer") == 0) {
-			Com_sprintf(itemname, sizeof(itemname), "%s", "info_player_deathmatch");
-		}
-		if(strcmp(itemname, "team_CTF_blueplayer") == 0) {
-			Com_sprintf(itemname, sizeof(itemname), "%s", "info_player_deathmatch");
-		}
-		if(strcmp(itemname, "team_CTF_redspawn") == 0) {
-			Com_sprintf(itemname, sizeof(itemname), "%s", "info_player_deathmatch");
-		}
-		if(strcmp(itemname, "team_CTF_bluespawn") == 0) {
-			Com_sprintf(itemname, sizeof(itemname), "%s", "info_player_deathmatch");
-		}
-	}
 
 	if(itemname[0] == 0) {
 		G_Printf("G_CallSpawn: NULL classname\n");
@@ -328,7 +243,7 @@ static void G_SpawnGEntityFromSpawnVars(void) {
 	int i;
 	gentity_t *ent;
 	char *s, *value, *gametypeName;
-	static char *gametypeNames[] = {"sandbox", "ffa", "team", "ctf", "oneflag", "obelisk", "harvester"};
+	static char *gametypeNames[] = {"sandbox", "ffa", "team"};
 
 	// get the next free entity
 	ent = G_Spawn();

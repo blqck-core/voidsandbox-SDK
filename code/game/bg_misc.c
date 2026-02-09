@@ -23,54 +23,13 @@ item_t gameInfoItems[] = {
 	{ "weapon_railgun",				"models/weapons2/railgun/railgun.md3",			"icons/iconw_railgun",		"Railgun",				10,		IT_WEAPON,		WP_RAILGUN },
 	{ "weapon_plasmagun",			"models/weapons2/plasma/plasma.md3",			"icons/iconw_plasma",		"Plasma Gun",			50,		IT_WEAPON,		WP_PLASMAGUN },
 	{ "weapon_bfg",					"models/weapons2/bfg/bfg.md3",					"icons/iconw_bfg",			"BFG10K",				20,		IT_WEAPON,		WP_BFG },
-	{ "weapon_grapplinghook",		"models/weapons2/grapple/grapple.md3",			"icons/iconw_grapple",		"Grappling Hook",		0,		IT_WEAPON,		WP_GRAPPLING_HOOK },
 	{ "weapon_nailgun",				"models/weapons/nailgun/nailgun.md3",			"icons/iconw_nailgun",		"Nailgun",				10,		IT_WEAPON,		WP_NAILGUN },
 	{ "weapon_prox_launcher",		"models/weapons/proxmine/proxmine.md3",			"icons/iconw_proxlauncher",	"Prox Launcher",		5,		IT_WEAPON,		WP_PROX_LAUNCHER },
 	{ "weapon_chaingun",			"models/weapons/vulcan/vulcan.md3",				"icons/iconw_chaingun",		"Chaingun",				80,		IT_WEAPON,		WP_CHAINGUN },
-	{ "weapon_flamethrower",		"models/weapons2/flamethrower/rocketl.md3",		"icons/iconw_flamethrower",	"Flamethrower",			100,	IT_WEAPON,		WP_FLAMETHROWER },
-	{ "weapon_antimatter",			"models/weapons2/antimatter/plasma.md3",		"icons/iconw_voodoo",		"Dark Flare",			100,	IT_WEAPON,		WP_ANTIMATTER },
 	{ "weapon_physgun", 			"models/weapons/physgun/physgun.md3",			"icons/iconw_physgun",		"Physgun",				0,		IT_WEAPON,		WP_PHYSGUN },
 	{ "weapon_gravitygun", 			"models/weapons/physgun/physgun.md3",			"icons/iconw_gravitygun",	"Gravitygun",			0,		IT_WEAPON,		WP_GRAVITYGUN },
 	{ "weapon_toolgun", 			"models/weapons/toolgun/toolgun.md3",			"icons/iconw_toolgun",		"Toolgun",				0,		IT_WEAPON,		WP_TOOLGUN },
-	{ "weapon_thrower",				"models/weapons3/machinegun/machinegun.md3",	"icons/iconw_thrower",		"Thrower",				100,	IT_WEAPON,		WP_THROWER },
-	{ "weapon_bouncer",				"models/weapons3/shotgun/shotgun.md3",			"icons/iconw_bouncer",		"Bouncer",				15,		IT_WEAPON,		WP_BOUNCER },
-	{ "weapon_thunder",				"models/weapons3/grenadel/grenadel.md3",		"icons/iconw_thunder",		"Thunder",				10,		IT_WEAPON,		WP_THUNDER },
-	{ "weapon_exploder",			"models/weapons3/rocketl/rocketl.md3",			"icons/iconw_exploder",		"Exploder",				10,		IT_WEAPON,		WP_EXPLODER },
-	{ "weapon_knocker",				"models/weapons3/lightning/lightning.md3",		"icons/iconw_knocker",		"Knocker",				25,		IT_WEAPON,		WP_KNOCKER },
-	{ "weapon_propgun",				"models/weapons3/railgun/railgun.md3",			"icons/iconw_propgun",		"Propgun",				15,		IT_WEAPON,		WP_PROPGUN },
-	{ "weapon_regenerator",			"models/weapons3/plasma/plasma.md3",			"icons/iconw_regenerator",	"Regenerator",			15,		IT_WEAPON,		WP_REGENERATOR },
-	{ "weapon_nuke",				"models/weapons3/bfg/bfg.md3",					"icons/iconw_nuke",			"Nuke",					2,		IT_WEAPON,		WP_NUKE },
 	{ "ammo_bullets",				"models/powerups/ammo/machinegunam.md3",		"icons/icona_machinegun",	"Bullets",				50,		IT_AMMO,		WP_MACHINEGUN },
-	{ "ammo_shells",				"models/powerups/ammo/shotgunam.md3",			"icons/icona_shotgun",		"Shells",				10,		IT_AMMO,		WP_SHOTGUN },
-	{ "ammo_grenades",				"models/powerups/ammo/grenadeam.md3",			"icons/icona_grenade",		"Grenades",				5,		IT_AMMO,		WP_GRENADE_LAUNCHER },
-	{ "ammo_cells",					"models/powerups/ammo/plasmaam.md3",			"icons/icona_plasma",		"Cells",				30,		IT_AMMO,		WP_PLASMAGUN },
-	{ "ammo_lightning",				"models/powerups/ammo/lightningam.md3",			"icons/icona_lightning",	"Lightning",			60,		IT_AMMO,		WP_LIGHTNING },
-	{ "ammo_rockets",				"models/powerups/ammo/rocketam.md3",			"icons/icona_rocket",		"Rockets",				5,		IT_AMMO,		WP_ROCKET_LAUNCHER },
-	{ "ammo_slugs",					"models/powerups/ammo/railgunam.md3",			"icons/icona_railgun",		"Slugs",				10,		IT_AMMO,		WP_RAILGUN },
-	{ "ammo_bfg",					"models/powerups/ammo/bfgam.md3",				"icons/icona_bfg",			"Bfg Ammo",				15,		IT_AMMO,		WP_BFG },
-	{ "ammo_nails",					"models/powerups/ammo/nailgunam.md3",			"icons/icona_nailgun",		"Nails",				20,		IT_AMMO,		WP_NAILGUN },
-	{ "ammo_mines",					"models/powerups/ammo/proxmineam.md3",			"icons/icona_proxlauncher",	"Proximity Mines",		10,		IT_AMMO,		WP_PROX_LAUNCHER },
-	{ "ammo_belt",					"models/powerups/ammo/chaingunam.md3",			"icons/icona_chaingun",		"Chaingun Belt",		100,	IT_AMMO,		WP_CHAINGUN },
-	{ "holdable_teleporter",		"models/powerups/holdable/teleporter.md3",		"icons/teleporter",			"Personal Teleporter",	1,		IT_HOLDABLE,	HI_TELEPORTER },
-	{ "holdable_medkit", 			"models/powerups/holdable/medkit.md3",			"icons/medkit",				"Medkit", 				1,		IT_HOLDABLE,	HI_MEDKIT },
-	{ "holdable_kamikaze", 			"models/powerups/kamikazi.md3",					"icons/kamikaze",			"Kamikaze",				1,		IT_HOLDABLE,	HI_KAMIKAZE },
-	{ "holdable_portal", 			"models/powerups/holdable/porter.md3",			"icons/portal",				"Portal",				1,		IT_HOLDABLE,	HI_PORTAL },
-	{ "holdable_invulnerability", 	"models/powerups/holdable/invulnerability.md3",	"icons/invulnerability",	"Invulnerability",		1,		IT_HOLDABLE,	HI_INVULNERABILITY },
-	{ "item_quad",					"models/powerups/instant/quad.md3",				"icons/quad",				"Quad Damage",			30,		IT_POWERUP,		PW_QUAD },
-	{ "item_enviro",				"models/powerups/instant/enviro.md3",			"icons/envirosuit",			"Battle Suit",			30,		IT_POWERUP,		PW_BATTLESUIT },
-	{ "item_haste",					"models/powerups/instant/haste.md3",			"icons/haste",				"Speed",				30,		IT_POWERUP,		PW_HASTE },
-	{ "item_invis",					"models/powerups/instant/invis.md3",			"icons/invis",				"Invisibility",			30,		IT_POWERUP,		PW_INVIS },
-	{ "item_regen",					"models/powerups/instant/regen.md3",			"icons/regen",				"Regeneration",			30,		IT_POWERUP,		PW_REGEN },
-	{ "item_flight",				"models/powerups/instant/flight.md3",			"icons/flight",				"Flight",				60,		IT_POWERUP,		PW_FLIGHT },
-	{ "item_scout",					"models/powerups/scout.md3",					"icons/scout",				"Scout",				0,		IT_RUNE,		PW_SCOUT },
-	{ "item_guard",					"models/powerups/guard.md3",					"icons/guard",				"Guard",				0,		IT_RUNE,		PW_GUARD },
-	{ "item_doubler",				"models/powerups/doubler.md3",					"icons/doubler",			"Doubler",				0,		IT_RUNE,		PW_DOUBLER },
-	{ "item_ammoregen",				"models/powerups/ammo.md3",						"icons/ammo_regen",			"Ammo Regen",			0,		IT_RUNE,		PW_AMMOREGEN },
-	{ "team_CTF_redflag",			"models/flags/r_flag.md3",						"icons/iconf_red1",			"Red Flag",				0,		IT_TEAM,		PW_REDFLAG },
-	{ "team_CTF_blueflag",			"models/flags/b_flag.md3",						"icons/iconf_blu1",			"Blue Flag",			0,		IT_TEAM,		PW_BLUEFLAG },
-	{ "team_CTF_neutralflag",		"models/flags/n_flag.md3",						"icons/iconf_neutral1",		"Neutral Flag",			0,		IT_TEAM,		PW_NEUTRALFLAG },
-	{ "item_redcube",				"models/powerups/orb/r_orb.md3",				"icons/iconh_rorb",			"Red Cube",				0,		IT_TEAM,		0 },
-	{ "item_bluecube",				"models/powerups/orb/b_orb.md3",				"icons/iconh_borb",			"Blue Cube",			0,		IT_TEAM,		0 },
 };
 // clang-format on
 
@@ -89,20 +48,9 @@ weaponProperties_t gameInfoWeapons[] = {
 	{ WT_RAILGUN, 	MT_NONE, 		WP_RAILGUN, 			NULL, 			1500, 	1, 		100, 	0, 		0,		16384,	WP_RAILGUN, 			0, 		0, 		0, 		0, 		qfalse,	qfalse,	qfalse,	0.0 },
 	{ WT_MISSILE, 	MT_GENERAL, 	WP_PLASMAGUN, 			"plasma", 		100, 	1, 		20, 	15, 	20,		0,		WP_PLASMAGUN, 			2000, 	0, 		0, 		10000, 	qfalse,	qfalse,	qfalse,	0.0 },
 	{ WT_MISSILE, 	MT_GENERAL, 	WP_BFG, 				"bfg", 			200, 	1, 		100, 	100, 	120,	0,		WP_BFG, 				2000, 	0, 		0, 		10000, 	qfalse,	qfalse,	qfalse,	0.0 },
-	{ WT_MISSILE, 	MT_HOOK, 		WP_GRAPPLING_HOOK, 		"hook", 		400, 	1, 		0, 		0, 		0,		0,		WP_GRAPPLING_HOOK, 		800, 	0, 		0, 		30000, 	qfalse,	qfalse,	qfalse,	0.0 },
 	{ WT_MISSILE, 	MT_GENERAL, 	WP_NAILGUN, 			"nail", 		1000, 	16, 	20, 	0, 		0,		0,		WP_NAILGUN, 			555, 	1800, 	500, 	10000, 	qfalse,	qfalse,	qfalse,	0.0 },
 	{ WT_MISSILE, 	MT_MINE, 		WP_PROX_LAUNCHER, 		"mine", 		800, 	1, 		0, 		100, 	150,	0,		WP_PROX_LAUNCHER, 		700, 	0, 		0, 		3000, 	qfalse,	qtrue,	qfalse,	0.0 },
 	{ WT_BULLET, 	MT_GENERAL, 	WP_CHAINGUN, 			NULL, 			30, 	1, 		7, 		0, 		0,		131072,	WP_CHAINGUN, 			0, 		0, 		600, 	0, 		qfalse,	qfalse,	qfalse,	0.0 },
-	{ WT_MISSILE, 	MT_GENERAL, 	WP_FLAMETHROWER, 		"flame", 		40, 	1, 		20, 	15, 	30,		0,		WP_FLAMETHROWER, 		750, 	0, 		0, 		1500, 	qfalse,	qfalse,	qtrue, 	0.65 },
-	{ WT_MISSILE, 	MT_GENERAL, 	WP_ANTIMATTER, 			"flare", 		40, 	1, 		6, 		6, 		20,		0,		WP_ANTIMATTER, 			1500, 	0, 		0, 		3500, 	qfalse,	qtrue,	qtrue, 	0.65 },
-	{ WT_MISSILE, 	MT_GENERAL, 	WP_NAILGUN, 			"missile", 		150, 	1, 		25, 	0, 		0,		0,		WP_THROWER, 			3500, 	100, 	50, 	5000, 	qfalse,	qtrue,	qtrue,	0.65 },
-	{ WT_MISSILE, 	MT_GENERAL, 	WP_NAILGUN, 			"missile", 		1000, 	11, 	16, 	0, 		0,		0,		WP_BOUNCER, 			2000, 	150, 	1000, 	5000, 	qfalse,	qtrue,	qtrue,	0.65 },
-	{ WT_MISSILE, 	MT_GENERAL, 	WP_GRENADE_LAUNCHER, 	"missile", 		1000, 	6, 		100, 	100, 	150,	0,		WP_THUNDER, 			700, 	0, 		3000, 	2500, 	qfalse,	qtrue,	qtrue,	0.65 },
-	{ WT_MISSILE, 	MT_GENERAL, 	WP_ROCKET_LAUNCHER, 	"missile", 		1600, 	1, 		150, 	150, 	300,	0,		WP_EXPLODER, 			200, 	0, 		0, 		30000, 	qtrue,	qfalse,	qfalse,	0.0 },
-	{ WT_MISSILE, 	MT_GENERAL, 	WP_ANTIMATTER, 			"missile", 		500, 	1, 		2, 		0, 		0,		0,		WP_KNOCKER, 			3500, 	0, 		0, 		5000, 	qfalse,	qtrue,	qtrue,	0.65 },
-	{ WT_MISSILE, 	MT_PROPGUN, 	WP_NONE, 				"sandbox_prop", 1000, 	1, 		0, 		0, 		0,		0,		WP_PROPGUN, 			2000, 	0, 		100, 	0, 		qfalse,	qfalse,	qfalse,	0.65 },
-	{ WT_MISSILE, 	MT_GENERAL, 	WP_PLASMAGUN, 			"missile", 		1000, 	1, 		2, 		2, 		80,		0,		WP_REGENERATOR, 		1800, 	0, 		0, 		10000, 	qfalse,	qtrue,	qfalse,	0.0 },
-	{ WT_MISSILE, 	MT_NUKE, 		WP_NONE, 				"hihihiha", 	3000, 	8, 		0, 		0, 		0,		0,		WP_NUKE, 				3000, 	0, 		777, 	0, 		qfalse,	qfalse,	qfalse,	0.65 },
 	{ WT_EMPTY, 	MT_NONE, 		WP_PHYSGUN, 			NULL, 			100, 	1, 		0, 		0, 		0,		8192,	WP_PHYSGUN, 			0, 		0, 		0, 		0, 		qfalse,	qfalse,	qfalse,	0.0 },
 	{ WT_EMPTY, 	MT_NONE, 		WP_GRAVITYGUN, 			NULL, 			100, 	1, 		0, 		0, 		0,		1024,	WP_GRAVITYGUN, 			0, 		0, 		0, 		0, 		qfalse,	qfalse,	qfalse,	0.0 },
 	{ WT_TOOLGUN, 	MT_NONE, 		WP_TOOLGUN, 			NULL, 			200, 	1, 		0, 		0, 		0,		4096,	WP_TOOLGUN, 			0, 		0, 		0, 		0, 		qfalse,	qfalse,	qfalse,	0.0 },
@@ -116,12 +64,6 @@ wPropProperties_t gameInfoWProps[] = {
 // 	oType 				modelname 								mtMin 		mtMax 		health 	gravity 	scale 		colSize		solid
 	{ OT_VANILLAQ3, 	"none", 								0, 			0, 			0, 		0.00,		0.00, 		0.00, 		qfalse }, //MT_NONE
 	{ OT_VANILLAQ3, 	"none", 								0, 			0, 			0, 		0.00,		0.00, 		0.00, 		qfalse }, //MT_GENERAL
-	{ OT_VANILLAQ3, 	"none", 								0, 			0, 			0, 		0.00,		0.00, 		0.00, 		qfalse }, //MT_HOOK
-	{ OT_VANILLAQ3, 	"none", 								0, 			0, 			0, 		0.00,		0.00, 		0.00, 		qfalse }, //MT_MINE
-	{ OT_VANILLAQ3, 	"none", 								0, 			0, 			0, 		0.00,		0.00, 		0.00, 		qfalse }, //MT_PROPS
-
-	{ OT_BASIC, 		"props/cube", 							1, 			15, 		-1, 	1.00,		0.50, 		25, 		qtrue }, //MT_PROPGUN
-	{ OT_NUKE, 			"models/ammo/rocket/rocket", 			0, 			0, 			1, 		1.00,		4.00, 		25, 		qfalse }, //MT_NUKE
 };
 // clang-format on
 
@@ -168,34 +110,12 @@ char* gameInfoSandboxSpawns[] = {
 	"weapon_railgun",
 	"weapon_plasmagun",
 	"weapon_bfg",
-	"weapon_grapplinghook",
 	"weapon_nailgun",
 	"weapon_prox_launcher",
 	"weapon_chaingun",
-	"weapon_flamethrower",
-	"weapon_antimatter",
 	"weapon_physgun",
 	"weapon_gravitygun",
 	"weapon_toolgun",
-	"weapon_thrower",
-	"weapon_bouncer",
-	"weapon_thunder",
-	"weapon_exploder",
-	"weapon_knocker",
-	"weapon_propgun",
-	"weapon_regenerator",
-	"weapon_nuke",
-	"ammo_bullets",
-	"ammo_shells",
-	"ammo_grenades",
-	"ammo_cells",
-	"ammo_lightning",
-	"ammo_rockets",
-	"ammo_slugs",
-	"ammo_bfg",
-	"ammo_nails",
-	"ammo_mines",
-	"ammo_belt",
 	"item_armor_shard",
 	"item_armor_combat",
 	"item_armor_body",
@@ -203,21 +123,6 @@ char* gameInfoSandboxSpawns[] = {
 	"item_health",
 	"item_health_large",
 	"item_health_mega",
-	"item_quad",
-	"item_enviro",
-	"item_haste",
-	"item_invis",
-	"item_regen",
-	"item_flight",
-	"item_scout",
-	"item_doubler",
-	"item_ammoregen",
-	"item_guard",
-	"holdable_teleporter",
-	"holdable_medkit",
-	"holdable_kamikaze",
-	"holdable_invulnerability",
-	"holdable_portal",
 
 	"sb.shooter",
 };
@@ -271,30 +176,6 @@ qboolean BG_FactionShouldAttack(int attackerFaction, int targetFaction) {
 		}
 	}
 	return qfalse;
-}
-
-item_t *BG_FindItemForPowerup(powerup_t pw) {
-	int i;
-
-	for(i = 0; i < gameInfoItemsNum; i++) {
-		if((gameInfoItems[i].giType == IT_POWERUP || gameInfoItems[i].giType == IT_TEAM || gameInfoItems[i].giType == IT_RUNE) && gameInfoItems[i].giTag == pw) {
-			return &gameInfoItems[i];
-		}
-	}
-
-	return NULL;
-}
-
-item_t *BG_FindItemForHoldable(holdable_t pw) {
-	int i;
-
-	for(i = 0; i < gameInfoItemsNum; i++) {
-		if(gameInfoItems[i].giType == IT_HOLDABLE && gameInfoItems[i].giTag == pw) {
-			return &gameInfoItems[i];
-		}
-	}
-
-	return NULL;
 }
 
 item_t *BG_FindItemForWeapon(weapon_t weapon) {
@@ -384,107 +265,21 @@ This needs to be the same for client side prediction and server use.
 */
 qboolean BG_CanItemBeGrabbed(int gametype, const entityState_t *ent, const playerState_t *ps) {
 	item_t *item;
-	int upperBound;
 
-	if(ent->modelindex < 1 || ent->modelindex >= gameInfoItemsNum) return qfalse;
-
+	if(ent->modelindex <= 0 || ent->modelindex >= gameInfoItemsNum) return qfalse;
 	item = &gameInfoItems[ent->modelindex];
 
 	switch(item->giType) {
-	case IT_WEAPON: return qtrue; // weapons are always picked up
-
-	case IT_AMMO:
-		if(ps->stats[STAT_AMMO] >= 9000) {
-			return qfalse; // can't hold any more
-		}
-		return qtrue;
-
+	case IT_WEAPON: return qtrue;
+	case IT_AMMO: return qtrue;
 	case IT_ARMOR:
-		if(gameInfoItems[ps->stats[STAT_PERSISTANT_POWERUP]].giTag == PW_SCOUT) {
-			return qfalse;
-		}
-
-		if(gameInfoItems[ps->stats[STAT_PERSISTANT_POWERUP]].giTag == PW_GUARD) {
-			upperBound = ps->stats[STAT_MAX_HEALTH];
-		} else {
-			upperBound = ps->stats[STAT_MAX_HEALTH] * 2;
-		}
-
-		if(ps->stats[STAT_ARMOR] >= upperBound) {
-			return qfalse;
-		}
+		if(ps->stats[STAT_ARMOR] >= MAX_PLAYER_ARMOR) return qfalse;
 		return qtrue;
-
 	case IT_HEALTH:
-		if(gameInfoItems[ps->stats[STAT_PERSISTANT_POWERUP]].giTag == PW_GUARD) {
-			upperBound = ps->stats[STAT_MAX_HEALTH];
-		} else if(item->quantity == 5 || item->quantity == 100) {
-			if(ps->stats[STAT_HEALTH] >= ps->stats[STAT_MAX_HEALTH] * 2) {
-				return qfalse;
-			}
-			return qtrue;
-		}
-
-		if(ps->stats[STAT_HEALTH] >= ps->stats[STAT_MAX_HEALTH]) {
-			return qfalse;
-		}
+		if(ps->stats[STAT_HEALTH] >= MAX_PLAYER_HEALTH) return qfalse;
 		return qtrue;
-
-	case IT_POWERUP: return qtrue; // powerups are always picked up
-
-	case IT_RUNE:
-		// can only hold one item at a time
-		if(ps->stats[STAT_PERSISTANT_POWERUP]) {
-			return qfalse;
-		}
-
-		// check team only
-		if((ent->generic1 & 2) && (ps->persistant[PERS_TEAM] != TEAM_RED)) {
-			return qfalse;
-		}
-		if((ent->generic1 & 4) && (ps->persistant[PERS_TEAM] != TEAM_BLUE)) {
-			return qfalse;
-		}
-
-		return qtrue;
-
-	case IT_TEAM: // team items, such as flags
-		if(gametype == GT_1FCTF) {
-			// neutral flag can always be picked up
-			if(item->giTag == PW_NEUTRALFLAG) {
-				return qtrue;
-			}
-			if(ps->persistant[PERS_TEAM] == TEAM_RED) {
-				if(item->giTag == PW_BLUEFLAG && ps->powerups[PW_NEUTRALFLAG]) {
-					return qtrue;
-				}
-			} else if(ps->persistant[PERS_TEAM] == TEAM_BLUE) {
-				if(item->giTag == PW_REDFLAG && ps->powerups[PW_NEUTRALFLAG]) {
-					return qtrue;
-				}
-			}
-		}
-		if(gametype == GT_CTF) {
-			if(ps->persistant[PERS_TEAM] == TEAM_RED) {
-				if(item->giTag == PW_BLUEFLAG || (item->giTag == PW_REDFLAG && ent->modelindex2) || (item->giTag == PW_REDFLAG && ps->powerups[PW_BLUEFLAG])) return qtrue;
-			} else if(ps->persistant[PERS_TEAM] == TEAM_BLUE) {
-				if(item->giTag == PW_REDFLAG || (item->giTag == PW_BLUEFLAG && ent->modelindex2) || (item->giTag == PW_BLUEFLAG && ps->powerups[PW_REDFLAG])) return qtrue;
-			}
-		}
-		if(gametype == GT_HARVESTER) {
-			return qtrue;
-		}
-		return qfalse;
-
-	case IT_HOLDABLE:
-		if(ps->stats[STAT_HOLDABLE_ITEM]) {
-			return qfalse;
-		}
-		return qtrue;
-
 	case IT_NULL: return qfalse;
-
-	default: Com_Printf("BG_CanItemBeGrabbed: unknown enum %d\n", item->giType); break;
+	default: Com_Printf("BG_CanItemBeGrabbed: unknown type %d\n", item->giType); break;
 	}
 
 	return qfalse;
@@ -691,40 +486,6 @@ void BG_AddPredictableEventToPlayerstate(int newEvent, int eventParm, playerStat
 	ps->eventSequence++;
 }
 
-void BG_TouchJumpPad(playerState_t *ps, entityState_t *jumppad) {
-	vec3_t angles;
-	float p;
-	int effectNum;
-
-	// spectators don't use jump pads
-	if(ps->pm_type != PM_NORMAL) {
-		return;
-	}
-
-	// flying characters don't hit bounce pads
-	if(ps->powerups[PW_FLIGHT]) {
-		return;
-	}
-
-	// if we didn't hit this same jumppad the previous frame
-	// then don't play the event sound again if we are in a fat trigger
-	if(ps->jumppad_ent != jumppad->number) {
-		vectoangles(jumppad->origin2, angles);
-		p = fabs(AngleNormalize180(angles[PITCH]));
-		if(p < 45) {
-			effectNum = 0;
-		} else {
-			effectNum = 1;
-		}
-		BG_AddPredictableEventToPlayerstate(EV_JUMP_PAD, effectNum, ps);
-	}
-	// remember hitting this jumppad this frame
-	ps->jumppad_ent = jumppad->number;
-	ps->jumppad_frame = ps->pmove_framecount;
-	// give the player the velocity from the jumppad
-	VectorCopy(jumppad->origin2, ps->velocity);
-}
-
 /*
 ========================
 BG_PlayerStateToEntityState
@@ -760,7 +521,7 @@ void BG_PlayerStateToEntityState(playerState_t *ps, entityState_t *s, qboolean s
 		SnapVector(s->apos.trBase);
 	}
 
-	s->angles2[YAW] = ps->movementDir;
+	s->angles2[YAW] = 0;
 	s->legsAnim = ps->legsAnim;
 	s->torsoAnim = ps->torsoAnim;
 	s->clientNum = ps->clientNum; // ET_PLAYER looks here instead of at number

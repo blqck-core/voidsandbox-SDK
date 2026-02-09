@@ -39,12 +39,6 @@ static spawn_t gameInfoSandboxEntities[] = {
 // clang-format on
 
 void G_DieProp(gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int mod) {
-	if(self->objectType == OT_VEHICLE || self->objectType == OT_TNT) { // VEHICLE-SYSTEM: vehicle's explode for all
-		G_StartCarExplode(self);
-	}
-	if(self->objectType == OT_NUKE) {
-		G_StartNukeExplode(self);
-	}
 	G_FreeEntity(self);
 }
 

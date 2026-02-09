@@ -42,14 +42,12 @@ typedef struct bot_entitystate_s {
 	int groundent;     // ground entity
 	int solid;         // solid type
 	int modelindex;    // model used
-	int modelindex2;   // weapons, CTF flags, etc
+	int modelindex2;   // weapons
 	int frame;         // model frame number
 	int event;         // impulse events -- muzzle flashes, footsteps, etc
 	int eventParm;     // even parameter
 	int powerups;      // bit flags
 	int weapon;        // determines weapon and flash model, etc
-	int legsAnim;      // mask off ANIM_TOGGLEBIT
-	int torsoAnim;     // mask off ANIM_TOGGLEBIT
 } bot_entitystate_t;
 
 typedef enum {
@@ -63,9 +61,6 @@ typedef enum {
 #define MOVE_WALK 1
 #define MOVE_CROUCH 2
 #define MOVE_JUMP 4
-#define MOVE_GRAPPLE 8
-#define MOVE_ROCKETJUMP 16
-#define MOVE_BFGJUMP 32
 
 // move flags
 #define MFL_BARRIERJUMP 1     // bot is performing a barrier jump
@@ -74,10 +69,6 @@ typedef enum {
 #define MFL_AGAINSTLADDER 8   // bot is against a ladder
 #define MFL_WATERJUMP 16      // bot is waterjumping
 #define MFL_TELEPORTED 32     // bot is being teleported
-#define MFL_GRAPPLEPULL 64    // bot is being pulled by the grapple
-#define MFL_ACTIVEGRAPPLE 128 // bot is using the grapple hook
-#define MFL_GRAPPLERESET 256  // bot has reset the grapple
-#define MFL_WALK 512          // bot should walk slowly
 
 typedef struct bot_initmove_s {
 	vec3_t origin;     // origin of the bot

@@ -100,7 +100,9 @@ void VMCall(int func_id) {
 #endif
 #ifdef UI
     case VM_UIRESET: memset(&uis.items, 0, sizeof(menuelement_s)*MAX_MENUITEMS); break;
-    case VM_CREATEBUTTON: vmresult.v.i = UI_CButton(vmargs.v[0].i, vmargs.v[1].f, vmargs.v[2].f, vmargs.v[3].f, vmargs.v[4].f, vmargs.v[5].s, vmargs.v[6].i, vmargs.v[7].f, vmargs.v[8].i, vmargs.v[9].i, vmargs.v[10].i, vmargs.v[11].i, vmargs.v[12].s, NULL); vmresult.t = JS_TYPE_INT; break;
+    case VM_CREATEBUTTON: vmresult.v.i = UI_CButton(vmargs.v[0].i, vmargs.v[1].f, vmargs.v[2].f, vmargs.v[3].f, vmargs.v[4].f, vmargs.v[5].s, vmargs.v[6].i, vmargs.v[7].f, vmargs.v[8].i, vmargs.v[9].i, vmargs.v[10].i, vmargs.v[11].i, vmargs.v[12].s); vmresult.t = JS_TYPE_INT; break;
+    case VM_CREATECHECKBOX: vmresult.v.i = UI_CCheckbox(vmargs.v[0].i, vmargs.v[1].f, vmargs.v[2].f, vmargs.v[3].f, vmargs.v[4].f, vmargs.v[5].s, vmargs.v[6].f, vmargs.v[7].i, vmargs.v[8].i, vmargs.v[9].i, vmargs.v[10].i, vmargs.v[11].s); vmresult.t = JS_TYPE_INT; break;
+    case VM_CREATESLIDER: vmresult.v.i = UI_CSlider(vmargs.v[0].i, vmargs.v[1].f, vmargs.v[2].f, vmargs.v[3].f, vmargs.v[4].f, vmargs.v[5].s, vmargs.v[6].f, vmargs.v[7].i, vmargs.v[8].i, vmargs.v[9].i, vmargs.v[10].i, vmargs.v[11].s, vmargs.v[12].f, vmargs.v[13].f, vmargs.v[14].i); vmresult.t = JS_TYPE_INT; break;
 #endif
 	}
 }

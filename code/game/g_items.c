@@ -7,72 +7,7 @@
 #define RESPAWN_ARMOR 25
 #define RESPAWN_HEALTH 35
 #define RESPAWN_AMMO 40
-#define RESPAWN_HOLDABLE 60
-#define RESPAWN_MEGAHEALTH 35
-#define RESPAWN_POWERUP 120
 #define RESPAWN_WEAPON 5
-
-static int Pickup_Powerup(gentity_t *ent, gentity_t *other) {
-	int quantity;
-
-	if(!other->client->ps.powerups[ent->item->giTag]) {
-		other->client->ps.powerups[ent->item->giTag] = level.time - (level.time % 1000);
-	}
-
-	if(ent->count) {
-		quantity = ent->count;
-	} else {
-		quantity = ent->item->quantity;
-		other->client->ps.powerups[ent->item->giTag] += ent->count * 1000;
-	}
-
-	other->client->ps.powerups[ent->item->giTag] += quantity * 1000;
-
-	return RESPAWN_POWERUP;
-}
-
-static int Pickup_PersistantPowerup(gentity_t *ent, gentity_t *other) {
-	other->client->ps.stats[STAT_PERSISTANT_POWERUP] = ent->item - gameInfoItems;
-	other->client->persistantPowerup = ent;
-
-	switch(ent->item->giTag) {
-	case PW_GUARD:
-		other->health = 200;
-		other->client->ps.stats[STAT_HEALTH] = 200;
-		other->client->ps.stats[STAT_MAX_HEALTH] = 200;
-		other->client->ps.stats[STAT_ARMOR] = 200;
-		other->client->pers.maxHealth = 200;
-		break;
-
-	case PW_SCOUT:
-		other->client->pers.maxHealth = 100;
-		other->client->ps.stats[STAT_ARMOR] = 0;
-		break;
-
-	case PW_DOUBLER: other->client->pers.maxHealth = 100; break;
-	case PW_AMMOREGEN:
-		if(other->health > 100) {
-			other->health = 100;
-			other->client->ps.stats[STAT_HEALTH] = 100;
-		}
-		other->client->ps.stats[STAT_MAX_HEALTH] = 50;
-		other->client->pers.maxHealth = 50;
-		break;
-	default: other->client->pers.maxHealth = 100; break;
-	}
-
-	return -1;
-}
-
-static int Pickup_Holdable(gentity_t *ent, gentity_t *other) {
-	other->client->ps.stats[STAT_HOLDABLE_ITEM] = ent->item - gameInfoItems;
-
-	if(ent->item->giTag == HI_KAMIKAZE) {
-		other->client->ps.eFlags |= EF_KAMIKAZE;
-	}
-
-	return RESPAWN_HOLDABLE;
-}
 
 void Set_Weapon(gentity_t *ent, int weapon, int status) { ent->swep_list[weapon] = status; }
 
@@ -122,17 +57,7 @@ static int Pickup_Weapon(gentity_t *ent, gentity_t *other) {
 }
 
 static int Pickup_Health(gentity_t *ent, gentity_t *other) {
-	int max;
 	int quantity;
-
-	// small and mega healths will go over the max
-	if(other->client && gameInfoItems[other->client->ps.stats[STAT_PERSISTANT_POWERUP]].giTag == PW_GUARD) {
-		max = other->client->ps.stats[STAT_MAX_HEALTH];
-	} else if(ent->item->quantity != 5 && ent->item->quantity != 100) {
-		max = other->client->ps.stats[STAT_MAX_HEALTH];
-	} else {
-		max = other->client->ps.stats[STAT_MAX_HEALTH] * 2;
-	}
 
 	if(ent->count) {
 		quantity = ent->count;
@@ -142,32 +67,17 @@ static int Pickup_Health(gentity_t *ent, gentity_t *other) {
 
 	other->health += quantity;
 
-	if(other->health > max) {
-		other->health = max;
-	}
+	if(other->health > MAX_PLAYER_HEALTH) other->health = MAX_PLAYER_HEALTH;
 	other->client->ps.stats[STAT_HEALTH] = other->health;
-
-	if(ent->item->quantity == 100) { // mega health respawns slow
-		return RESPAWN_MEGAHEALTH;
-	}
 
 	return RESPAWN_HEALTH;
 }
 
 static int Pickup_Armor(gentity_t *ent, gentity_t *other) {
-	int upperBound;
 
 	other->client->ps.stats[STAT_ARMOR] += ent->item->quantity;
 
-	if(other->client && gameInfoItems[other->client->ps.stats[STAT_PERSISTANT_POWERUP]].giTag == PW_GUARD) {
-		upperBound = other->client->ps.stats[STAT_MAX_HEALTH];
-	} else {
-		upperBound = other->client->ps.stats[STAT_MAX_HEALTH] * 2;
-	}
-
-	if(other->client->ps.stats[STAT_ARMOR] > upperBound) {
-		other->client->ps.stats[STAT_ARMOR] = upperBound;
-	}
+	if(other->client->ps.stats[STAT_ARMOR] > MAX_PLAYER_ARMOR) other->client->ps.stats[STAT_ARMOR] = MAX_PLAYER_ARMOR;
 
 	return RESPAWN_ARMOR;
 }
@@ -218,10 +128,6 @@ void Touch_Item(gentity_t *ent, gentity_t *other, trace_t *trace) {
 	case IT_AMMO: respawn = Pickup_Ammo(ent, other); break;
 	case IT_ARMOR: respawn = Pickup_Armor(ent, other); break;
 	case IT_HEALTH: respawn = Pickup_Health(ent, other); break;
-	case IT_POWERUP: respawn = Pickup_Powerup(ent, other); break;
-	case IT_RUNE: respawn = Pickup_PersistantPowerup(ent, other); break;
-	case IT_TEAM: respawn = Pickup_Team(ent, other); break;
-	case IT_HOLDABLE: respawn = Pickup_Holdable(ent, other); break;
 	default: return;
 	}
 
@@ -299,14 +205,8 @@ gentity_t *LaunchItem(item_t *item, vec3_t origin, vec3_t velocity) {
 	VectorCopy(velocity, dropped->s.pos.trDelta);
 
 	dropped->s.eFlags |= EF_BOUNCE;
-	if((cvarInt("g_gametype") == GT_CTF || cvarInt("g_gametype") == GT_1FCTF) && item->giType == IT_TEAM) { // Special case for CTF flags
-		dropped->think = Team_DroppedFlagThink;
-		dropped->nextthink = level.time + 30000;
-		Team_CheckDroppedItem(dropped);
-	} else { // auto-remove after 30 seconds
-		dropped->think = G_FreeEntity;
-		dropped->nextthink = level.time + 30000;
-	}
+	dropped->think = G_FreeEntity;
+	dropped->nextthink = level.time + 30000;
 
 	dropped->flags = FL_DROPPED_ITEM;
 
@@ -399,83 +299,6 @@ void FinishSpawningItem(gentity_t *ent) {
 	trap_LinkEntity(ent);
 }
 
-void G_CheckTeamItems(void) {
-	// Set up team stuff
-	Team_InitGame();
-
-	if(cvarInt("g_gametype") == GT_CTF) {
-		item_t *item;
-
-		// check for the two flags
-		item = BG_FindItem("Red Flag");
-		if(!item) {
-			G_Printf(S_COLOR_YELLOW "WARNING: No team_CTF_redflag in map\n");
-		}
-		item = BG_FindItem("Blue Flag");
-		if(!item) {
-			G_Printf(S_COLOR_YELLOW "WARNING: No team_CTF_blueflag in map\n");
-		}
-	}
-
-	if(cvarInt("g_gametype") == GT_1FCTF) {
-		item_t *item;
-
-		// check for all three flags
-		item = BG_FindItem("Red Flag");
-		if(!item) {
-			G_Printf(S_COLOR_YELLOW "WARNING: No team_CTF_redflag in map\n");
-		}
-		item = BG_FindItem("Blue Flag");
-		if(!item) {
-			G_Printf(S_COLOR_YELLOW "WARNING: No team_CTF_blueflag in map\n");
-		}
-		item = BG_FindItem("Neutral Flag");
-		if(!item) {
-			G_Printf(S_COLOR_YELLOW "WARNING: No team_CTF_neutralflag in map\n");
-		}
-	}
-
-	if(cvarInt("g_gametype") == GT_OBELISK) {
-		gentity_t *ent;
-
-		// check for the two obelisks
-		ent = NULL;
-		ent = G_Find(ent, FOFS(classname), "team_redobelisk");
-		if(!ent) {
-			G_Printf(S_COLOR_YELLOW "WARNING: No team_redobelisk in map\n");
-		}
-
-		ent = NULL;
-		ent = G_Find(ent, FOFS(classname), "team_blueobelisk");
-		if(!ent) {
-			G_Printf(S_COLOR_YELLOW "WARNING: No team_blueobelisk in map\n");
-		}
-	}
-
-	if(cvarInt("g_gametype") == GT_HARVESTER) {
-		gentity_t *ent;
-
-		// check for all three obelisks
-		ent = NULL;
-		ent = G_Find(ent, FOFS(classname), "team_redobelisk");
-		if(!ent) {
-			G_Printf(S_COLOR_YELLOW "WARNING: No team_redobelisk in map\n");
-		}
-
-		ent = NULL;
-		ent = G_Find(ent, FOFS(classname), "team_blueobelisk");
-		if(!ent) {
-			G_Printf(S_COLOR_YELLOW "WARNING: No team_blueobelisk in map\n");
-		}
-
-		ent = NULL;
-		ent = G_Find(ent, FOFS(classname), "team_neutralobelisk");
-		if(!ent) {
-			G_Printf(S_COLOR_YELLOW "WARNING: No team_neutralobelisk in map\n");
-		}
-	}
-}
-
 static int G_ItemDisabled(item_t *item) {
 	char name[128];
 
@@ -504,8 +327,6 @@ void G_SpawnItem(gentity_t *ent, item_t *item) {
 	ent->nextthink = level.time + FRAMETIME * 2;
 	ent->think = FinishSpawningItem;
 	ent->phys_bounce = 0.50; // items are bouncy
-
-	if(item->giType == IT_RUNE) ent->s.generic1 = ent->spawnflags;
 }
 
 static void G_BounceItem(gentity_t *ent, trace_t *trace) {
@@ -539,7 +360,6 @@ static void G_BounceItem(gentity_t *ent, trace_t *trace) {
 void G_RunItem(gentity_t *ent) {
 	vec3_t origin;
 	trace_t tr;
-	int contents;
 	int mask;
 
 	// if groundentity has been set to -1, it may have been pushed off an edge
@@ -577,17 +397,6 @@ void G_RunItem(gentity_t *ent) {
 	G_RunThink(ent);
 
 	if(tr.fraction == 1) return;
-
-	// if it is in a nodrop volume, remove it
-	contents = trap_PointContents(ent->r.currentOrigin, -1);
-	if(contents & CONTENTS_NODROP) {
-		if(ent->item && ent->item->giType == IT_TEAM) {
-			Team_FreeEntity(ent);
-		} else {
-			G_FreeEntity(ent);
-		}
-		return;
-	}
 
 	G_BounceItem(ent, &tr);
 }

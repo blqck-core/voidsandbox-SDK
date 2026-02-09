@@ -568,12 +568,33 @@ gentity_t *FindRandomItem(void) {
 gentity_t *FindRandomSpawn(void) {
 	gentity_t *finded[MAX_GENTITIES];
 	int i, num_finded = 0;
+	const char *classname = "info_player_deathmatch";
 
 	for(i = 0; i < level.num_entities; i++) {
 		gentity_t *ent = &g_entities[i];
 
 		if(!ent->inuse) continue;
-		if(!strcmp(ent->classname, "info_player_deathmatch") || !strcmp(ent->classname, "team_CTF_redspawn") || !strcmp(ent->classname, "team_CTF_bluespawn")) {
+		if(!strcmp(ent->classname, classname)) {
+			finded[num_finded++] = ent;
+			if(num_finded >= MAX_GENTITIES) break;
+		}
+	}
+
+	if(num_finded > 0) return finded[rand() % num_finded];
+
+	return NULL;
+}
+
+gentity_t *FindRandomTeamSpawn(team_t team) {
+	gentity_t *finded[MAX_GENTITIES];
+	int i, num_finded = 0;
+	const char *classname = (team == TEAM_RED) ? "info_player_redspawn" : "info_player_bluespawn";
+
+	for(i = 0; i < level.num_entities; i++) {
+		gentity_t *ent = &g_entities[i];
+
+		if(!ent->inuse) continue;
+		if(!strcmp(ent->classname, classname)) {
 			finded[num_finded++] = ent;
 			if(num_finded >= MAX_GENTITIES) break;
 		}

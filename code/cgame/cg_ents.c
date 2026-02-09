@@ -392,13 +392,6 @@ static void CG_Item(centity_t *cent) {
 		ent.nonNormalizedAxes = qtrue;
 	}
 
-	if(item->giType == IT_HOLDABLE && item->giTag == HI_KAMIKAZE) {
-		VectorScale(ent.axis[0], 2, ent.axis[0]);
-		VectorScale(ent.axis[1], 2, ent.axis[1]);
-		VectorScale(ent.axis[2], 2, ent.axis[2]);
-		ent.nonNormalizedAxes = qtrue;
-	}
-
 	// add to refresh list
 	trap_R_AddRefEntityToScene(&ent);
 
@@ -460,24 +453,6 @@ static void CG_Missile(centity_t *cent) {
 		return;
 	}
 
-	if(cent->currentState.weapon == WP_FLAMETHROWER) {
-		ent.reType = RT_SPRITE;
-		ent.radius = 20;
-		ent.rotation = 1;
-		ent.customShader = cgs.media.flameBallShader;
-		trap_R_AddRefEntityToScene(&ent);
-		return;
-	}
-
-	if(cent->currentState.weapon == WP_ANTIMATTER) {
-		ent.reType = RT_SPRITE;
-		ent.radius = 50;
-		ent.rotation = 1;
-		ent.customShader = cgs.media.antimatterBallShader;
-		trap_R_AddRefEntityToScene(&ent);
-		return;
-	}
-
 	// flicker between two skins
 	ent.skinNum = cg.clientFrame & 1;
 	ent.hModel = weapon->missileModel;
@@ -500,40 +475,6 @@ static void CG_Missile(centity_t *cent) {
 			RotateAroundDirection(ent.axis, s1->time);
 		}
 	}
-
-	trap_R_AddRefEntityToScene(&ent);
-}
-
-static void CG_Grapple(centity_t *cent) {
-	refEntity_t ent;
-	entityState_t *s1;
-	const weaponInfo_t *weapon;
-
-	s1 = &cent->currentState;
-	if(s1->weapon > WEAPONS_NUM) s1->weapon = 0;
-	weapon = &cg_weapons[s1->weapon];
-
-	// calculate the axis
-	VectorCopy(s1->angles, cent->lerpAngles);
-
-	// add missile sound
-	if(weapon->missileSound) trap_S_AddLoopingSound(cent->currentState.number, cent->lerpOrigin, vec3_origin, weapon->missileSound);
-
-	// Will draw cable if needed
-	CG_GrappleTrail(cent, weapon);
-
-	// create the render entity
-	memset(&ent, 0, sizeof(ent));
-	VectorCopy(cent->lerpOrigin, ent.origin);
-	VectorCopy(cent->lerpOrigin, ent.oldorigin);
-
-	// flicker between two skins
-	ent.skinNum = cg.clientFrame & 1;
-	ent.hModel = weapon->missileModel;
-	ent.renderfx = weapon->missileRenderfx;
-
-	// convert direction of travel into axis
-	if(VectorNormalize2(s1->pos.trDelta, ent.axis[0]) == 0) ent.axis[0][2] = 1;
 
 	trap_R_AddRefEntityToScene(&ent);
 }
@@ -723,136 +664,6 @@ static void CG_CalcEntityLerpPositions(centity_t *cent, qboolean STPhys) {
 	}
 }
 
-static void CG_TeamBase(centity_t *cent) {
-	refEntity_t model;
-	vec3_t angles;
-	int t, h;
-	float c;
-
-	if(cgs.gametype == GT_CTF || cgs.gametype == GT_1FCTF) {
-		// show the flag base
-		memset(&model, 0, sizeof(model));
-		model.reType = RT_MODEL;
-		VectorCopy(cent->lerpOrigin, model.lightingOrigin);
-		VectorCopy(cent->lerpOrigin, model.origin);
-		AnglesToAxis(cent->currentState.angles, model.axis);
-		if(cent->currentState.modelindex == TEAM_RED) {
-			model.hModel = cgs.media.redFlagBaseModel;
-		} else if(cent->currentState.modelindex == TEAM_BLUE) {
-			model.hModel = cgs.media.blueFlagBaseModel;
-		} else {
-			model.hModel = cgs.media.neutralFlagBaseModel;
-		}
-		trap_R_AddRefEntityToScene(&model);
-	} else if(cgs.gametype == GT_OBELISK) {
-		// show the obelisk
-		memset(&model, 0, sizeof(model));
-		model.reType = RT_MODEL;
-		VectorCopy(cent->lerpOrigin, model.lightingOrigin);
-		VectorCopy(cent->lerpOrigin, model.origin);
-		AnglesToAxis(cent->currentState.angles, model.axis);
-
-		model.hModel = cgs.media.overloadBaseModel;
-		trap_R_AddRefEntityToScene(&model);
-		// if hit
-		if(cent->currentState.frame == 1) {
-			// show hit model
-			// modelindex2 is the health value of the obelisk
-			c = cent->currentState.modelindex2;
-			model.shaderRGBA[0] = 0xff;
-			model.shaderRGBA[1] = c;
-			model.shaderRGBA[2] = c;
-			model.shaderRGBA[3] = 0xff;
-			//
-			model.hModel = cgs.media.overloadEnergyModel;
-			trap_R_AddRefEntityToScene(&model);
-		}
-		// if respawning
-		if(cent->currentState.frame == 2) {
-			if(!cent->miscTime) {
-				cent->miscTime = cg.time;
-			}
-			t = cg.time - cent->miscTime;
-			h = (10 - 5) * 1000;
-			//
-			if(t > h) {
-				c = (float)(t - h) / h;
-				if(c > 1) c = 1;
-			} else {
-				c = 0;
-			}
-			// show the lights
-			AnglesToAxis(cent->currentState.angles, model.axis);
-			//
-			model.shaderRGBA[0] = c * 0xff;
-			model.shaderRGBA[1] = c * 0xff;
-			model.shaderRGBA[2] = c * 0xff;
-			model.shaderRGBA[3] = c * 0xff;
-
-			model.hModel = cgs.media.overloadLightsModel;
-			trap_R_AddRefEntityToScene(&model);
-			// show the target
-			if(t > h) {
-				if(!cent->muzzleFlashTime) {
-					trap_S_StartSound(cent->lerpOrigin, ENTITYNUM_NONE, CHAN_BODY, cgs.media.obeliskRespawnSound);
-					cent->muzzleFlashTime = 1;
-				}
-				VectorCopy(cent->currentState.angles, angles);
-				angles[YAW] += (float)16 * acos(1 - c) * 180 / M_PI;
-				AnglesToAxis(angles, model.axis);
-
-				VectorScale(model.axis[0], c, model.axis[0]);
-				VectorScale(model.axis[1], c, model.axis[1]);
-				VectorScale(model.axis[2], c, model.axis[2]);
-
-				model.shaderRGBA[0] = 0xff;
-				model.shaderRGBA[1] = 0xff;
-				model.shaderRGBA[2] = 0xff;
-				model.shaderRGBA[3] = 0xff;
-				//
-				model.origin[2] += 56;
-				model.hModel = cgs.media.overloadTargetModel;
-				trap_R_AddRefEntityToScene(&model);
-			}
-		} else {
-			cent->miscTime = 0;
-			cent->muzzleFlashTime = 0;
-			// modelindex2 is the health value of the obelisk
-			c = cent->currentState.modelindex2;
-			model.shaderRGBA[0] = 0xff;
-			model.shaderRGBA[1] = c;
-			model.shaderRGBA[2] = c;
-			model.shaderRGBA[3] = 0xff;
-			// show the lights
-			model.hModel = cgs.media.overloadLightsModel;
-			trap_R_AddRefEntityToScene(&model);
-			// show the target
-			model.origin[2] += 56;
-			model.hModel = cgs.media.overloadTargetModel;
-			trap_R_AddRefEntityToScene(&model);
-		}
-	} else if(cgs.gametype == GT_HARVESTER) {
-		// show harvester model
-		memset(&model, 0, sizeof(model));
-		model.reType = RT_MODEL;
-		VectorCopy(cent->lerpOrigin, model.lightingOrigin);
-		VectorCopy(cent->lerpOrigin, model.origin);
-		AnglesToAxis(cent->currentState.angles, model.axis);
-
-		if(cent->currentState.modelindex == TEAM_RED) {
-			model.hModel = cgs.media.harvesterModel;
-			model.customSkin = cgs.media.harvesterRedSkin;
-		} else if(cent->currentState.modelindex == TEAM_BLUE) {
-			model.hModel = cgs.media.harvesterModel;
-			model.customSkin = cgs.media.harvesterBlueSkin;
-		} else {
-			model.hModel = cgs.media.harvesterNeutralModel;
-			model.customSkin = 0;
-		}
-		trap_R_AddRefEntityToScene(&model);
-	}
-}
-
 static void CG_AddCEntity(centity_t *cent) {
 	// event-only entities will have been dealt with already
 	if(cent->currentState.eType >= ET_EVENTS) return;
@@ -869,9 +680,7 @@ static void CG_AddCEntity(centity_t *cent) {
 
 	switch(cent->currentState.eType) {
 	default: CG_Error("Bad entity type: %i\n", cent->currentState.eType); break;
-	case ET_INVISIBLE:
-	case ET_PUSH_TRIGGER:
-	case ET_TELEPORT_TRIGGER: break;
+	case ET_INVISIBLE: break;
 	case ET_GENERAL: CG_General(cent); break;
 	case ET_PLAYER: CG_Player(cent); break;
 	case ET_ITEM: CG_Item(cent); break;
@@ -879,8 +688,6 @@ static void CG_AddCEntity(centity_t *cent) {
 	case ET_MOVER: CG_Mover(cent); break;
 	case ET_PORTAL: CG_Portal(cent); break;
 	case ET_SPEAKER: CG_Speaker(cent); break;
-	case ET_GRAPPLE: CG_Grapple(cent); break;
-	case ET_TEAM: CG_TeamBase(cent); break;
 	}
 }
 

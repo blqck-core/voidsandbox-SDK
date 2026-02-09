@@ -384,7 +384,7 @@ void Phys_HoldFrame(gentity_t *player, vec3_t velocity, qboolean isPhysgun) {
 		VectorCopy(end, ent->s.pos.trBase);
 		VectorCopy(end, ent->r.currentOrigin);
 		Phys_Enable(ent);
-		if(player->client->pers.cmd.buttons & BUTTON_GESTURE && isPhysgun) { // rotate
+		if(player->client->pers.cmd.buttons & BUTTON_USE && isPhysgun) { // rotate
 			if(!ent->r.bmodel) {
 				ent->s.apos.trBase[0] = player->client->pers.cmd.angles[0];
 			}
@@ -888,14 +888,6 @@ static void Phys_Impact(gentity_t *ent, trace_t *tr) {
 				if(hit->grabbedEntity != ent) {
 					if(ent->s.pos.trType != TR_GRAVITY_WATER) {
 						if(ent->objectType == OT_BASIC) {
-							G_AddEvent(ent, EV_OT1_IMPACT, 0);
-							Phys_Smoke(ent, impactForceAll * 0.20);
-						}
-						if(ent->objectType == OT_VEHICLE) {
-							G_AddEvent(ent, EV_CRASH25, 0);
-							Phys_Smoke(ent, impactForceAll * 0.20);
-						}
-						if(ent->objectType == OT_TNT) {
 							G_AddEvent(ent, EV_OT1_IMPACT, 0);
 							Phys_Smoke(ent, impactForceAll * 0.20);
 						}

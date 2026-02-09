@@ -5,14 +5,14 @@
 #ifndef __Q_CVARS_H
 #define __Q_CVARS_H
 
-#define MAX_CVAR_VALUE_STRING 256
+#define MAX_CVAR_STRING 256
 
 typedef int cvarHandle_t;
 
 typedef struct {
 	float value;
 	int integer;
-	char string[MAX_CVAR_VALUE_STRING];
+	char string[MAX_CVAR_STRING];
 } cvar_t;
 
 void ST_RegisterCvars(void);

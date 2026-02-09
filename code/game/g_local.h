@@ -120,9 +120,6 @@ struct gentity_s {
 	gentity_t *teamchain;  // next entity in team
 	gentity_t *teammaster; // master of the team
 
-	int kamikazeTime;
-	int kamikazeShockTime;
-
 	int watertype;
 	int waterlevel;
 
@@ -176,7 +173,6 @@ struct gentity_s {
 
 	int swep_list[WEAPONS_NUM];
 	int swep_ammo[WEAPONS_NUM];
-	int swep_id;
 
 	// Physgun and Gravitygun
 	gentity_t *grabbedEntity; // physgun object for player
@@ -389,11 +385,6 @@ typedef struct {
 	int portalSequence;
 
 	int frameStartTime;
-
-	// Obelisk tell
-	int healthRedObelisk;
-	int healthBlueObelisk;
-	qboolean MustSendObeliskHealth;
 } level_locals_t;
 
 typedef struct {
@@ -425,7 +416,6 @@ int AI_Frame(int time);
 // g_active.c
 void ClientThink(int clientNum);
 void G_RunClient(gentity_t *ent);
-qboolean G_CheckWeapon(int clientNum, int wp, int finish);
 int G_CheckWeaponAmmo(int clientNum, int wp);
 void PM_Add_SwepAmmo(int clientNum, int wp, int count);
 void ClientEndFrame(gentity_t *ent);
@@ -438,9 +428,6 @@ void SandboxBotSpawn(gentity_t *bot, char spawnid[]);
 
 // g_client.c
 void SP_info_player_deathmatch(gentity_t *ent);
-void SP_info_player_start(gentity_t *ent);
-qboolean SpotWouldTelefrag(gentity_t *spot);
-gentity_t *SelectSpawnPoint(vec3_t avoidPoint, vec3_t origin, vec3_t angles);
 void InitBodyQue(void);
 void CopyToBodyQue(gentity_t *ent);
 void SetClientViewAngle(gentity_t *ent, vec3_t angle);
@@ -453,6 +440,7 @@ void ClientSpawn(gentity_t *ent);
 void ClientDisconnect(int clientNum);
 void DropClientSilently(int clientNum);
 void SetUnlimitedWeapons(gentity_t *ent);
+qboolean OnSameTeam(gentity_t *ent1, gentity_t *ent2);
 
 // g_cmds.c
 void DeathmatchScoreboardMessage(gentity_t *ent);
@@ -460,7 +448,6 @@ void G_SendGameCvars(gentity_t *ent);
 void G_SendSwepWeapons(gentity_t *ent);
 void G_SendSpawnSwepWeapons(gentity_t *ent);
 void RespawnTimeMessage(gentity_t *ent, int time);
-void ObeliskHealthMessage(void);
 void Cmd_Score_f(gentity_t *ent);
 char *ConcatArgs(int start);
 void SetTeam(gentity_t *ent, char *s);
@@ -475,7 +462,6 @@ void TossClientCubes(gentity_t *self);
 void TossClientPersistantPowerups(gentity_t *ent);
 void body_die(gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int meansOfDeath);
 void player_die(gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int meansOfDeath);
-int G_InvulnerabilityEffect(gentity_t *targ, vec3_t dir, vec3_t point, vec3_t impactpoint, vec3_t bouncedir);
 void G_Damage(gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_t dir, vec3_t point, int damage, int dflags, int mod);
 qboolean CanDamage(gentity_t *targ, vec3_t origin);
 void G_RadiusDamage(vec3_t origin, gentity_t *attacker, float damage, float radius, gentity_t *ignore, int mod);
@@ -488,7 +474,6 @@ void Touch_Item(gentity_t *ent, gentity_t *other, trace_t *trace);
 gentity_t *LaunchItem(item_t *item, vec3_t origin, vec3_t velocity);
 gentity_t *Drop_Item(gentity_t *ent, item_t *item);
 void FinishSpawningItem(gentity_t *ent);
-void G_CheckTeamItems(void);
 void G_SpawnItem(gentity_t *ent, item_t *item);
 void G_RunItem(gentity_t *ent);
 
@@ -505,26 +490,6 @@ void G_RunThink(gentity_t *ent);
 
 // g_misc.c
 void TeleportPlayer(gentity_t *player, vec3_t origin, vec3_t angles, qboolean noKnockback);
-void SP_misc_portal_surface(gentity_t *ent);
-void SP_misc_portal_camera(gentity_t *ent);
-void SP_shooter_rocket(gentity_t *ent);
-void SP_shooter_plasma(gentity_t *ent);
-void SP_shooter_grenade(gentity_t *ent);
-void DropPortalDestination(gentity_t *player);
-void DropPortalSource(gentity_t *player);
-
-// g_mover.c
-void G_RunMover(gentity_t *ent);
-void Touch_DoorTrigger(gentity_t *ent, gentity_t *other, trace_t *trace);
-void SP_func_door(gentity_t *ent);
-void SP_func_plat(gentity_t *ent);
-void SP_func_button(gentity_t *ent);
-void SP_path_corner(gentity_t *self);
-void SP_func_train(gentity_t *self);
-void SP_func_static(gentity_t *ent);
-void SP_func_rotating(gentity_t *ent);
-void SP_func_bobbing(gentity_t *ent);
-void SP_func_pendulum(gentity_t *ent);
 
 // g_physics.c
 void Phys_VehiclePlayer(gentity_t *self);
@@ -569,42 +534,6 @@ void G_ClearMap_f(void);
 // g_svcmds.c
 qboolean ConsoleCommand(void);
 
-// g_target.c
-void SP_target_give(gentity_t *ent);
-void SP_target_delay(gentity_t *ent);
-void SP_target_print(gentity_t *ent);
-void SP_target_speaker(gentity_t *ent);
-void SP_target_teleporter(gentity_t *self);
-void SP_target_relay(gentity_t *self);
-void SP_target_kill(gentity_t *self);
-void SP_target_position(gentity_t *self);
-void SP_target_location(gentity_t *self);
-void SP_script_variable(gentity_t *self);
-void SP_script_cmd(gentity_t *ent);
-
-// g_team.c
-void Team_InitGame(void);
-qboolean OnSameTeam(gentity_t *ent1, gentity_t *ent2);
-void Team_CheckDroppedItem(gentity_t *dropped);
-void Team_ReturnFlag(int team);
-void Team_FreeEntity(gentity_t *ent);
-void Team_DroppedFlagThink(gentity_t *ent);
-int Pickup_Team(gentity_t *ent, gentity_t *other);
-qboolean Team_GetLocationMsg(gentity_t *ent, char *loc, int loclen);
-gentity_t *SelectCTFSpawnPoint(team_t team, int teamstate, vec3_t origin, vec3_t angles);
-void SP_team_redobelisk(gentity_t *ent);
-void SP_team_blueobelisk(gentity_t *ent);
-void SP_team_neutralobelisk(gentity_t *ent);
-qboolean CheckObeliskAttack(gentity_t *obelisk, gentity_t *attacker);
-
-// g_trigger.c
-void SP_trigger_multiple(gentity_t *ent);
-void SP_trigger_always(gentity_t *ent);
-void SP_trigger_push(gentity_t *self);
-void SP_target_push(gentity_t *self);
-void SP_trigger_teleport(gentity_t *self);
-void SP_trigger_hurt(gentity_t *self);
-
 // g_utils.c
 int G_ModelIndex(char *name);
 int G_SoundIndex(char *name);
@@ -633,20 +562,17 @@ qboolean G_PlayerIsOwner(gentity_t *player, gentity_t *ent);
 gentity_t *G_FindWeldEntity(gentity_t *ent);
 gentity_t *FindRandomItem(void);
 gentity_t *FindRandomSpawn(void);
+gentity_t *FindRandomTeamSpawn(team_t team);
 
 // g_weapon.c
 void CalcMuzzlePoint(gentity_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t muzzlePoint);
 void G_ExplodeMissile(gentity_t *ent);
 qboolean Melee_Fire(gentity_t *ent, int weapon);
-void Weapon_HookFree(gentity_t *ent);
 void Weapon_Toolgun_Info(gentity_t *ent);
 void ProximityMine_Trigger(gentity_t *trigger, gentity_t *other, trace_t *trace);
 void G_RunMissile(gentity_t *ent);
 gentity_t *fire_missile(gentity_t *self, vec3_t start, vec3_t forward, vec3_t right, vec3_t up, int weapon);
 void FireWeapon(gentity_t *ent);
-void G_StartKamikaze(gentity_t *ent);
-void G_StartCarExplode(gentity_t *ent);
-void G_StartNukeExplode(gentity_t *ent);
 
 extern level_locals_t level;
 extern gentity_t g_entities[MAX_GENTITIES];
@@ -708,7 +634,6 @@ void trap_EA_Command(int client, char *command);
 void trap_EA_Gesture(int client);
 void trap_EA_Attack(int client);
 void trap_EA_Use(int client);
-void trap_EA_SelectWeapon(int client, int weapon);
 void trap_EA_View(int client, vec3_t viewangles);
 void trap_EA_GetInput(int client, float thinktime, void *input);
 void trap_EA_ResetInput(int client);

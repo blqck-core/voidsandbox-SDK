@@ -39,7 +39,7 @@ void CG_BuildSolidList(void) {
 		cent = &cg_entities[snap->entities[i].number];
 		ent = &cent->currentState;
 
-		if(ent->eType == ET_ITEM || ent->eType == ET_PUSH_TRIGGER || ent->eType == ET_TELEPORT_TRIGGER) {
+		if(ent->eType == ET_ITEM) {
 			cg_triggerEntities[cg_numTriggerEntities] = cent;
 			cg_numTriggerEntities++;
 			continue;
@@ -230,20 +230,6 @@ static void CG_TouchItem(centity_t *cent) {
 
 	item = &gameInfoItems[cent->currentState.modelindex];
 
-	// Special case for flags.
-	// We don't predict touching our own flag
-	if(cgs.gametype == GT_1FCTF) {
-		if(item->giTag != PW_NEUTRALFLAG) {
-			return;
-		}
-	}
-	if(cgs.gametype == GT_CTF || cgs.gametype == GT_HARVESTER) {
-		if(cg.predictedPlayerState.persistant[PERS_TEAM] == TEAM_RED && item->giTag == PW_REDFLAG) return;
-		if(cg.predictedPlayerState.persistant[PERS_TEAM] == TEAM_BLUE && item->giTag == PW_BLUEFLAG) return;
-		if(cg.predictedPlayerState.persistant[PERS_TEAM] == TEAM_RED && item->giTag == PW_BLUEFLAG) canBePicked = qtrue;
-		if(cg.predictedPlayerState.persistant[PERS_TEAM] == TEAM_BLUE && item->giTag == PW_REDFLAG) canBePicked = qtrue;
-	}
-
 	// grab it
 	if(canBePicked) {
 		BG_AddPredictableEventToPlayerstate(EV_ITEM_PICKUP, cent->currentState.modelindex, &cg.predictedPlayerState);
@@ -291,24 +277,14 @@ static void CG_TouchTriggerPrediction(void) {
 			continue;
 		}
 
-		if(ent->solid != SOLID_BMODEL) {
-			continue;
-		}
+		if(ent->solid != SOLID_BMODEL) continue;
 
 		cmodel = trap_CM_InlineModel(ent->modelindex);
-		if(!cmodel) {
-			continue;
-		}
+		if(!cmodel) continue;
 
 		trap_CM_BoxTrace(&trace, cg.predictedPlayerState.origin, cg.predictedPlayerState.origin, cg_pmove.mins, cg_pmove.maxs, cmodel, -1);
 
-		if(!trace.startsolid) {
-			continue;
-		}
-
-		if(ent->eType == ET_PUSH_TRIGGER) {
-			BG_TouchJumpPad(&cg.predictedPlayerState, ent);
-		}
+		if(!trace.startsolid) continue;
 	}
 
 	// if we didn't touch a jump pad this pmove frame
@@ -397,7 +373,7 @@ void CG_PredictPlayerState(void) {
 		if(trap_Key_GetCatcher() == KEYCATCH_UI || trap_Key_GetCatcher() & KEYCATCH_CONSOLE) {
 			cg.savedSens = 0;
 		} else {
-			if(cg_pmove.cmd.buttons & BUTTON_GESTURE && cg_pmove.cmd.buttons & BUTTON_ATTACK && cg_pmove.cmd.weapon == WP_PHYSGUN) {
+			if(cg_pmove.cmd.buttons & BUTTON_USE && cg_pmove.cmd.buttons & BUTTON_ATTACK && cg_pmove.ps->weapon == WP_PHYSGUN) {
 				cvarSet("sensitivity", "0.025");
 			} else {
 				if(cg.savedSens && cg.savedSens != 0.025) cvarSet("sensitivity", va("%.3f", cg.savedSens));

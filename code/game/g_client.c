@@ -18,96 +18,6 @@ void SP_info_player_deathmatch(gentity_t *ent) {
 	if(i) ent->flags |= FL_NO_HUMANS;
 }
 
-void SP_info_player_start(gentity_t *ent) {
-	ent->classname = "info_player_deathmatch";
-	SP_info_player_deathmatch(ent);
-}
-
-qboolean SpotWouldTelefrag(gentity_t *spot) {
-	int i, num;
-	gentity_t *hit;
-	vec3_t mins, maxs;
-
-	VectorAdd(spot->s.origin, playerMins, mins);
-	VectorAdd(spot->s.origin, playerMaxs, maxs);
-	num = trap_EntitiesInBox(mins, maxs, SourceTechEntityList, MAX_GENTITIES);
-
-	for(i = 0; i < num; i++) {
-		hit = &g_entities[SourceTechEntityList[i]];
-		// if ( hit->client && hit->client->ps.stats[STAT_HEALTH] > 0 ) {
-		if(hit->client) {
-			return qtrue;
-		}
-	}
-
-	return qfalse;
-}
-
-static gentity_t *SelectRandomFurthestSpawnPoint(vec3_t avoidPoint, vec3_t origin, vec3_t angles) {
-	gentity_t *spot;
-	vec3_t delta;
-	float dist;
-	float list_dist[64];
-	gentity_t *list_spot[64];
-	int numSpots, rnd, i, j;
-
-	numSpots = 0;
-	spot = NULL;
-
-	while((spot = G_Find(spot, FOFS(classname), "info_player_deathmatch")) != NULL) {
-		if(SpotWouldTelefrag(spot)) continue;
-		VectorSubtract(spot->s.origin, avoidPoint, delta);
-		dist = VectorLength(delta);
-		for(i = 0; i < numSpots; i++) {
-			if(dist > list_dist[i]) {
-				if(numSpots >= 64) numSpots = 64 - 1;
-				for(j = numSpots; j > i; j--) {
-					list_dist[j] = list_dist[j - 1];
-					list_spot[j] = list_spot[j - 1];
-				}
-				list_dist[i] = dist;
-				list_spot[i] = spot;
-				numSpots++;
-				if(numSpots > 64) numSpots = 64;
-				break;
-			}
-		}
-		if(i >= numSpots && numSpots < 64) {
-			list_dist[numSpots] = dist;
-			list_spot[numSpots] = spot;
-			numSpots++;
-		}
-	}
-	if(!numSpots) {
-		spot = G_Find(NULL, FOFS(classname), "info_player_deathmatch");
-		if(!spot) G_Error("Couldn't find a spawn point");
-		VectorCopy(spot->s.origin, origin);
-		origin[2] += 9;
-		VectorCopy(spot->s.angles, angles);
-		return spot;
-	}
-
-	// select a random spot from the spawn points furthest away
-	rnd = random() * (numSpots / 2);
-
-	VectorCopy(list_spot[rnd]->s.origin, origin);
-	origin[2] += 9;
-	VectorCopy(list_spot[rnd]->s.angles, angles);
-
-	return list_spot[rnd];
-}
-
-gentity_t *SelectSpawnPoint(vec3_t avoidPoint, vec3_t origin, vec3_t angles) { return SelectRandomFurthestSpawnPoint(avoidPoint, origin, angles); }
-
-static gentity_t *SelectSpectatorSpawnPoint(vec3_t origin, vec3_t angles) {
-	FindIntermissionPoint();
-
-	VectorCopy(level.intermission_origin, origin);
-	VectorCopy(level.intermission_angle, angles);
-
-	return NULL;
-}
-
 void InitBodyQue(void) {
 	int i;
 	gentity_t *ent;
@@ -140,8 +50,6 @@ just like the existing corpse to leave behind.
 =============
 */
 void CopyToBodyQue(gentity_t *ent) {
-	gentity_t *e;
-	int i;
 	gentity_t *body;
 	int contents;
 
@@ -159,19 +67,6 @@ void CopyToBodyQue(gentity_t *ent) {
 
 	body->s = ent->s;
 	body->s.eFlags = EF_DEAD; // clear EF_TALK, etc
-	if(ent->s.eFlags & EF_KAMIKAZE) {
-		body->s.eFlags |= EF_KAMIKAZE;
-
-		// check if there is a kamikaze timer around for this owner
-		for(i = 0; i < MAX_GENTITIES; i++) {
-			e = &g_entities[i];
-			if(!e->inuse) continue;
-			if(e->activator != ent) continue;
-			if(strcmp(e->classname, "kamikaze timer")) continue;
-			e->activator = body;
-			break;
-		}
-	}
 	body->s.powerups = 0;  // clear powerups
 	body->s.loopSound = 0; // clear lava burning
 	body->s.number = body - g_entities;
@@ -186,18 +81,6 @@ void CopyToBodyQue(gentity_t *ent) {
 		body->s.pos.trType = TR_STATIONARY;
 	}
 	body->s.event = 0;
-
-	// change the animation to the last-frame only, so the sequence
-	// doesn't repeat anew for the body
-	switch(body->s.legsAnim & ~ANIM_TOGGLEBIT) {
-	case BOTH_DEATH1:
-	case BOTH_DEAD1: body->s.torsoAnim = body->s.legsAnim = BOTH_DEAD1; break;
-	case BOTH_DEATH2:
-	case BOTH_DEAD2: body->s.torsoAnim = body->s.legsAnim = BOTH_DEAD2; break;
-	case BOTH_DEATH3:
-	case BOTH_DEAD3:
-	default: body->s.torsoAnim = body->s.legsAnim = BOTH_DEAD3; break;
-	}
 
 	body->r.svFlags = ent->r.svFlags;
 	VectorCopy(ent->r.mins, body->r.mins);
@@ -303,12 +186,7 @@ void ClientUserinfoChanged(int clientNum) {
 	int team;
 	int npcType;
 	char *s;
-	char model[MAX_QPATH], headModel[MAX_QPATH], legsModel[MAX_QPATH];
-	char headR[16], headG[16], headB[16];
-	char modelR[16], modelG[16], modelB[16];
-	char legsR[16], legsG[16], legsB[16];
-	char physR[16], physG[16], physB[16];
-	char swep_id[16];
+	char playerskin[MAX_QPATH];
 	gclient_t *client;
 	char userinfo[MAX_INFO_STRING];
 
@@ -331,21 +209,7 @@ void ClientUserinfoChanged(int clientNum) {
 	ent->tool_id = atoi(Info_ValueForKey(userinfo, "toolgun_tool"));
 	ent->tool_entity = NULL;
 
-	// set model
-	if(cvarInt("g_gametype") >= GT_TEAM) {
-		Q_StringCopy(model, Info_ValueForKey(userinfo, "team_model"), sizeof(model));
-		Q_StringCopy(headModel, Info_ValueForKey(userinfo, "team_headmodel"), sizeof(headModel));
-		Q_StringCopy(legsModel, Info_ValueForKey(userinfo, "team_legsmodel"), sizeof(legsModel));
-	} else {
-		Q_StringCopy(model, Info_ValueForKey(userinfo, "model"), sizeof(model));
-		Q_StringCopy(headModel, Info_ValueForKey(userinfo, "headmodel"), sizeof(headModel));
-		Q_StringCopy(legsModel, Info_ValueForKey(userinfo, "legsmodel"), sizeof(legsModel));
-	}
-
-	if(ent->r.svFlags & SVF_BOT) {
-		Q_StringCopy(headModel, Info_ValueForKey(userinfo, "model"), sizeof(headModel));
-		Q_StringCopy(legsModel, Info_ValueForKey(userinfo, "model"), sizeof(legsModel));
-	}
+	Q_StringCopy(playerskin, Info_ValueForKey(userinfo, "playerskin"), sizeof(playerskin));
 
 	npcType = atoi(Info_ValueForKey(userinfo, "npcType"));
 	if(npcType && ent->r.svFlags & SVF_BOT) {
@@ -353,19 +217,6 @@ void ClientUserinfoChanged(int clientNum) {
 	} else {
 		ent->npcType = NT_PLAYER;
 	}
-
-	strcpy(legsR, Info_ValueForKey(userinfo, "legsR"));
-	strcpy(legsG, Info_ValueForKey(userinfo, "legsG"));
-	strcpy(legsB, Info_ValueForKey(userinfo, "legsB"));
-	strcpy(modelR, Info_ValueForKey(userinfo, "modelR"));
-	strcpy(modelG, Info_ValueForKey(userinfo, "modelG"));
-	strcpy(modelB, Info_ValueForKey(userinfo, "modelB"));
-	strcpy(headR, Info_ValueForKey(userinfo, "headR"));
-	strcpy(headG, Info_ValueForKey(userinfo, "headG"));
-	strcpy(headB, Info_ValueForKey(userinfo, "headB"));
-	strcpy(physR, Info_ValueForKey(userinfo, "physR"));
-	strcpy(physG, Info_ValueForKey(userinfo, "physG"));
-	strcpy(physB, Info_ValueForKey(userinfo, "physB"));
 
 	// set team
 	if(cvarInt("g_gametype") >= GT_TEAM && g_entities[clientNum].r.svFlags & SVF_BOT) {
@@ -385,12 +236,10 @@ void ClientUserinfoChanged(int clientNum) {
 		team = client->sess.sessionTeam;
 	}
 
-	strcpy(swep_id, va("%i", ent->swep_id));
-
 	if(ent->r.svFlags & SVF_BOT) {
-		s = va("n\\%s\\t\\%i\\m\\%s\\hm\\%s\\lm\\%s\\si\\%s\\vn\\%i\\nt\\%i", client->pers.netname, team, model, headModel, legsModel, swep_id, client->vehicleNum, ent->npcType);
+		s = va("n\\%s\\t\\%i\\p\\%s\\v\\%i\\i\\%i", client->pers.netname, team, playerskin, client->vehicleNum, ent->npcType);
 	} else {
-		s = va("n\\%s\\t\\%i\\m\\%s\\hm\\%s\\lm\\%s\\hr\\%s\\hg\\%s\\hb\\%s\\mr\\%s\\mg\\%s\\mb\\%s\\lr\\%s\\lg\\%s\\lb\\%s\\pr\\%s\\pg\\%s\\pb\\%s\\si\\%s\\vn\\%i\\nt\\%i\\f\\%i", client->pers.netname, client->sess.sessionTeam, model, headModel, legsModel, headR, headG, headB, modelR, modelG, modelB, legsR, legsG, legsB, physR, physG, physB, swep_id, client->vehicleNum, ent->npcType, ent->flashlight);
+		s = va("n\\%s\\t\\%i\\p\\%s\\v\\%i\\i\\%i\\f\\%i", client->pers.netname, client->sess.sessionTeam, playerskin, client->vehicleNum, ent->npcType, ent->flashlight);
 	}
 
 	trap_SetConfigstring(CS_PLAYERS + clientNum, s);
@@ -507,14 +356,13 @@ static void SetupCustomBot(gentity_t *bot) {
 		Set_Ammo(bot, bot->botspawn->weapon, 9999);
 	}
 
-	bot->health = bot->client->ps.stats[STAT_HEALTH] = bot->client->ps.stats[STAT_MAX_HEALTH] = bot->botspawn->health;
+	bot->health = bot->client->ps.stats[STAT_HEALTH] = bot->botspawn->health;
 
 	CopyAlloc(bot->target, bot->botspawn->target); // noire.dev bot->target
 }
 
 void SetUnlimitedWeapons(gentity_t *ent) {
 	Set_Ammo(ent, WP_GAUNTLET, -1);
-	Set_Ammo(ent, WP_GRAPPLING_HOOK, -1);
 	Set_Ammo(ent, WP_TOOLGUN, -1);
 	Set_Ammo(ent, WP_PHYSGUN, -1);
 	Set_Ammo(ent, WP_GRAVITYGUN, -1);
@@ -531,7 +379,6 @@ static void SetSandboxWeapons(gentity_t *ent) {
 static void SetCustomWeapons(gentity_t *ent) {
 	int i;
 	Set_Ammo(ent, WP_GAUNTLET, -1);
-	Set_Ammo(ent, WP_GRAPPLING_HOOK, -1);
 	Set_Ammo(ent, WP_TOOLGUN, -1);
 	Set_Ammo(ent, WP_PHYSGUN, -1);
 	Set_Ammo(ent, WP_GRAVITYGUN, -1);
@@ -543,20 +390,20 @@ static void SetCustomWeapons(gentity_t *ent) {
 	ent->health = ent->client->ps.stats[STAT_HEALTH] = 100;
 	// Set spawnweapon
 	if(cvarInt("g_gametype") == GT_SANDBOX) {
-		ent->swep_id = WP_PHYSGUN;
+		ent->s.weapon = WP_PHYSGUN;
 		ent->client->ps.weapon = WP_PHYSGUN;
 		ClientUserinfoChanged(ent->s.clientNum);
 		return;
 	} else {
 		for(i = WEAPONS_NUM; i > 1; i--) {
 			if(ent->swep_list[i] == WS_HAVE) {
-				ent->swep_id = i;
+				ent->s.weapon = i;
 				ent->client->ps.weapon = i;
 				ClientUserinfoChanged(ent->s.clientNum);
 				return;
 			}
 		}
-		ent->swep_id = 1;
+		ent->s.weapon = 1;
 		ent->client->ps.weapon = 1;
 		ClientUserinfoChanged(ent->s.clientNum);
 	}
@@ -564,7 +411,6 @@ static void SetCustomWeapons(gentity_t *ent) {
 
 void ClientSpawn(gentity_t *ent) {
 	int index;
-	vec3_t spawn_origin, spawn_angles;
 	gclient_t *client;
 	int i;
 	clientPersistant_t saved;
@@ -580,32 +426,10 @@ void ClientSpawn(gentity_t *ent) {
 	client = ent->client;
 
 	// find a spawn point
-	if(ent->botspawn) {
-		spawnPoint = ent->botspawn;
-		VectorCopy(ent->botspawn->s.origin, spawn_origin);
-		VectorCopy(ent->botspawn->s.angles, spawn_angles);
-	} else if(client->sess.sessionTeam == TEAM_SPECTATOR) {
-		spawnPoint = SelectSpectatorSpawnPoint(spawn_origin, spawn_angles);
-	} else if(cvarInt("g_gametype") >= GT_CTF) {
-		// all base oriented team games use the CTF spawn points
-		spawnPoint = SelectCTFSpawnPoint(client->sess.sessionTeam, client->pers.teamState.state, spawn_origin, spawn_angles);
-	} else {
-		do {
-			// don't spawn near existing origin if possible
-			spawnPoint = SelectSpawnPoint(client->ps.origin, spawn_origin, spawn_angles);
-
-			if((spawnPoint->flags & FL_NO_BOTS) && (ent->r.svFlags & SVF_BOT)) continue;
-
-			if((spawnPoint->flags & FL_NO_HUMANS) && !(ent->r.svFlags & SVF_BOT)) continue;
-
-			break;
-
-		} while(1);
-	}
+	if(ent->botspawn) spawnPoint = ent->botspawn;
+	else if(cvarInt("g_gametype") >= GT_TEAM) spawnPoint = FindRandomTeamSpawn(client->sess.sessionTeam);
+	else spawnPoint = FindRandomSpawn();
 	client->pers.teamState.state = TEAM_ACTIVE;
-
-	// always clear the kamikaze flag
-	ent->s.eFlags &= ~EF_KAMIKAZE;
 
 	// toggle the teleport bit so the client knows to not lerp
 	flags = ent->client->ps.eFlags & (EF_TELEPORT_BIT);
@@ -638,7 +462,6 @@ void ClientSpawn(gentity_t *ent) {
 	// set max health
 	client->pers.maxHealth = 100;
 	// clear entity values
-	client->ps.stats[STAT_MAX_HEALTH] = client->pers.maxHealth;
 	client->ps.eFlags = flags;
 
 	ent->s.groundEntityNum = ENTITYNUM_NONE;
@@ -659,16 +482,16 @@ void ClientSpawn(gentity_t *ent) {
 	client->ps.clientNum = index;
 
 	// health will count down towards max_health
-	ent->health = client->ps.stats[STAT_HEALTH] = client->ps.stats[STAT_MAX_HEALTH] + 25;
+	ent->health = client->ps.stats[STAT_HEALTH] = MAX_PLAYER_HEALTH;
 
-	G_SetOrigin(ent, spawn_origin);
-	VectorCopy(spawn_origin, client->ps.origin);
+	G_SetOrigin(ent, spawnPoint->s.origin);
+	VectorCopy(spawnPoint->s.origin, client->ps.origin);
 
 	// the respawned flag will be cleared after the attack and jump keys come up
 	client->ps.pm_flags |= PMF_RESPAWNED;
 
 	trap_GetUsercmd(client - level.clients, &ent->client->pers.cmd);
-	SetClientViewAngle(ent, spawn_angles);
+	SetClientViewAngle(ent, spawnPoint->s.angles);
 
 	if(ent->client->sess.sessionTeam != TEAM_SPECTATOR) {
 		G_KillBox(ent);
@@ -696,10 +519,6 @@ void ClientSpawn(gentity_t *ent) {
 
 	client->respawnTime = level.time;
 	client->latched_buttons = 0;
-
-	// set default animations
-	client->ps.torsoAnim = TORSO_STAND;
-	client->ps.legsAnim = LEGS_IDLE;
 
 	if(level.intermissiontime) {
 		MoveClientToIntermission(ent);
@@ -746,13 +565,7 @@ void ClientDisconnect(int clientNum) {
 	}
 
 	// send effect if they were completely connected
-	if(ent->client->pers.connected == CON_CONNECTED && ent->client->sess.sessionTeam != TEAM_SPECTATOR) {
-		// They don't get to take powerups with them!
-		// Especially important for stuff like CTF flags
-		TossClientItems(ent);
-		TossClientPersistantPowerups(ent);
-		if(cvarInt("g_gametype") == GT_HARVESTER) TossClientCubes(ent);
-	}
+	if(ent->client->pers.connected == CON_CONNECTED && ent->client->sess.sessionTeam != TEAM_SPECTATOR) TossClientItems(ent);
 
 	trap_UnlinkEntity(ent);
 	ent->s.modelindex = 0;
@@ -771,4 +584,11 @@ void ClientDisconnect(int clientNum) {
 
 void DropClientSilently(int clientNum) {
 	if(g_entities[clientNum].npcType > NT_PLAYER) trap_DropClient(clientNum, "DR_SILENT_DROP");
+}
+
+qboolean OnSameTeam(gentity_t *ent1, gentity_t *ent2) {
+	if(!ent1->client || !ent2->client) return qfalse;
+	if(cvarInt("g_gametype") < GT_TEAM) return qfalse;
+	if(ent1->client->sess.sessionTeam == ent2->client->sess.sessionTeam) return qtrue;
+	return qfalse;
 }

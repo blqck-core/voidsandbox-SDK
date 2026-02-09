@@ -50,8 +50,57 @@ static item_t *UI_FindItemClassname(const char *classname) {
 #define CB_VARIABLE 2
 #define CB_FUNC 3
 
-static sfxHandle_t UI_GeneralCallback(menuelement_s *item) {
-	if(strlen(item->action)) trap_Cmd(EXEC_INSERT, (item->action));
+static void DrawTip(const char *text) {
+	ST_DrawRoundedRect((uis.cursorx - BASEFONT_INDENT) + 17, uis.cursory - 21, ST_StringWidth(text, 1.00)+BASEFONT_INDENT*2, BASEFONT_HEIGHT + 4, 0, cgui.colors[JSCOLOR_TIPSHADOW]);
+	ST_DrawRoundedRect((uis.cursorx - BASEFONT_INDENT) + 18, uis.cursory - 20, ST_StringWidth(text, 1.00)+BASEFONT_INDENT*2, BASEFONT_HEIGHT + 4, 0, cgui.colors[JSCOLOR_TIP]);
+	ST_DrawString(uis.cursorx + 18, uis.cursory - 18, text, 0, cgui.colors[JSCOLOR_TIPTEXT], 1.00);
+}
+
+static float SliderProgress(float value, float min, float max) {
+    float result;
+    float clamp;
+    
+    if(value < min) clamp = min;
+    else if(value > max) clamp = max;
+    else clamp = value;
+    
+    result = (clamp - min) / (max - min);
+    
+    if(result <= 0.0f) return 0.0f;
+    if(result >= 1.0f) return 1.0f;
+    
+    return result;
+}
+
+static float SliderValue(float min, float max, float x, float w) {
+    float local_x = (float)uis.cursorx - x;
+    
+    if(local_x < 0.0f) local_x = 0.0f;
+    if(local_x > w) local_x = w;
+    
+    return min + (local_x / w) * (max - min);
+}
+
+static sfxHandle_t UI_GeneralCallback(menuelement_s *item, int key) {
+	switch(item->type) {
+    case MTYPE_BUTTON:
+        if(strlen(item->action)) trap_Cmd(EXEC_INSERT, (item->action));
+        break;
+    case MTYPE_CHECKBOX:
+        if(item->value > 0) item->value = 0;
+        else item->value = 1;
+        if(strlen(item->action)) cvarSet(item->action, va("%f", item->value));
+        break;
+	case MTYPE_SLIDER:
+        switch(key) {
+	    case K_MOUSE1: if(Menu_CursorOnItem(item->id) && !(item->flags & QMF_INACTIVE)) 
+	        if(item->mode == EMODE_INT) item->value = (int)(SliderValue(item->min, item->max, item->x+item->corner, item->w-(item->corner*2)));
+	        if(item->mode == EMODE_FLOAT) item->value = SliderValue(item->min, item->max, item->x+item->corner, item->w-(item->corner*2)); 
+	        break;
+	    }
+        if(strlen(item->action)) cvarSet(item->action, va("%f", item->value));
+        break;
+	}
 	JS_MenuCallback(item->id);
 	return menu_move_sound;
 }
@@ -74,28 +123,53 @@ static void Text_Draw(menuelement_s *t) {
 	ST_DrawString(x, y, t->string, t->style, color, t->size);
 }
 
-static void Button_Init(menuelement_s *t) {
-    if(!t->w || !t->h) t->autowh = qtrue;
+static void Button_Draw(menuelement_s *e) {
+    float text_y = e->y+(e->h-(BASEFONT_HEIGHT*e->size))*0.5;
+    int tcolor;
+
+	tcolor = Menu_CursorOnItem(e->id) ? JSCOLOR_SELECTED : e->colortext;
+	
+    ST_DrawRoundedRect(e->x, e->y, e->w, e->h, e->corner, cgui.colors[e->colorbg]);
+    if(e->style & UI_CENTER) ST_DrawString(e->x+(e->w*0.5), text_y, e->text, UI_CENTER, cgui.colors[tcolor], e->size);
+    else if(e->style & UI_RIGHT) ST_DrawString((e->x+e->w)-e->margin, text_y, e->text, UI_RIGHT, cgui.colors[tcolor], e->size);
+    else ST_DrawString(e->x+e->margin, text_y, e->text, UI_LEFT, cgui.colors[tcolor], e->size);
 }
 
-static void Button_Draw(menuelement_s *t) {
-    float text_y;
+static void Checkbox_Draw(menuelement_s *e) {
+    float text_y = e->y+(e->h-(BASEFONT_HEIGHT*e->size))*0.5;
+    int tcolor, scolor;
     
-	if(t->generic.flags & QMF_GRAYED) t->curColortext = JSCOLOR_DISABLED;
-	else t->curColortext = t->colortext;
-
-	if(Menu_CursorOnItem(t->id)) t->curColortext = JSCOLOR_SELECTED;
-	else t->curColortext = t->colortext;
+	tcolor = Menu_CursorOnItem(e->id) ? JSCOLOR_SELECTED : e->colortext;
+	scolor = e->value ? JSCOLOR_ENABLED : JSCOLOR_DISABLED;
 	
-	if(t->autowh) {
-	    ST_DrawString(t->x, text_y, t->text, t->style, cgui.colors[t->curColortext], t->size);
-	} else {
-    	text_y = t->y+(t->h-(BASEFONT_HEIGHT*t->size))*0.5;
-        ST_DrawRoundedRect(t->x, t->y, t->w, t->h, t->corner, cgui.colors[t->colorbg]);
-    	if(t->style & UI_CENTER) ST_DrawString(t->x+(t->w*0.5), text_y, t->text, UI_CENTER, cgui.colors[t->curColortext], t->size);
-    	else if(t->style & UI_RIGHT) ST_DrawString((t->x+t->w)-t->margin, text_y, t->text, UI_RIGHT, cgui.colors[t->curColortext], t->size);
-    	else ST_DrawString(t->x+t->margin, text_y, t->text, UI_LEFT, cgui.colors[t->curColortext], t->size);
-	}
+    ST_DrawRoundedRect(e->x, e->y, e->w, e->h, e->corner, cgui.colors[e->colorbg]);
+    ST_DrawRoundedRect((e->x+e->w)-(e->h*0.90), (e->y+(e->h*0.5))-e->h*0.35, e->h*0.70, e->h*0.70, e->corner, cgui.colors[scolor]);
+    ST_DrawString(e->x+e->margin, text_y, e->text, UI_LEFT, cgui.colors[tcolor], e->size);
+}
+
+static void Slider_Draw(menuelement_s *e) {
+    float text_y = e->y+(e->h-(BASEFONT_HEIGHT*e->size))*0.5;
+    int tcolor;
+    
+	tcolor = Menu_CursorOnItem(e->id) ? JSCOLOR_SELECTED : e->colortext;
+	
+    ST_DrawRoundedRect(e->x, e->y, e->w, e->h, e->corner, cgui.colors[e->colorbg]);
+    ST_DrawRoundedRect(e->x+e->corner, (e->y+e->h)-e->h*0.20, e->w-(e->corner*2), e->h*0.10, 0, cgui.colors[JSCOLOR_DISABLED]);
+    ST_DrawRoundedRect(e->x+e->corner, (e->y+e->h)-e->h*0.20, (e->w-(e->corner*2))*SliderProgress(e->value, e->min, e->max), e->h*0.10, 0, cgui.colors[JSCOLOR_ENABLED]);
+    ST_DrawString(e->x+e->margin, text_y, e->text, UI_LEFT, cgui.colors[tcolor], e->size);
+    if(Menu_CursorOnItem(e->id)) DrawTip(va("%f", e->value));
+}
+
+static void Action_Draw(menuelement_s *e) {
+    float text_y = e->y+(e->h-(BASEFONT_HEIGHT*e->size))*0.5;
+    int tcolor, scolor;
+    
+	tcolor = Menu_CursorOnItem(e->id) ? JSCOLOR_SELECTED : e->colortext;
+	scolor = e->value ? JSCOLOR_ENABLED : JSCOLOR_DISABLED;
+	
+    ST_DrawRoundedRect(e->x, e->y, e->w, e->h, e->corner, cgui.colors[e->colorbg]);
+    ST_DrawRoundedRect((e->x+e->w)-(e->h*0.90), (e->y+(e->h*0.5))-e->h*0.35, e->h*0.70, e->h*0.70, e->corner, cgui.colors[scolor]);
+    ST_DrawString(e->x+e->margin, text_y, e->text, UI_LEFT, cgui.colors[tcolor], e->size);
 }
 
 static void Bitmap_Init(menuelement_s *b) {
@@ -181,118 +255,6 @@ static void Bitmap_Draw(menuelement_s *b) {
 	}
 }
 
-static void Action_Init(menuelement_s *a) {
-	int len;
-
-	// calculate bounds
-	if(a->string)
-		len = strlenru(a->string);
-	else
-		len = 0;
-
-	// left justify text
-	a->generic.left = a->generic.x;
-	a->generic.right = a->generic.x + len * BIGCHAR_WIDTH;
-	a->generic.top = a->generic.y;
-	a->generic.bottom = a->generic.y + BIGCHAR_HEIGHT;
-}
-
-static void Action_Draw(menuelement_s *a) {
-	int x, y;
-	int style;
-	float *color;
-
-	style = 0;
-	color = color_white;
-	if(a->generic.flags & QMF_GRAYED) {
-		color = color_disabled;
-	} else if((a->generic.flags & QMF_PULSEIFFOCUS) && (a->generic.parent->cursor == a->generic.menuPosition)) {
-		color = color_highlight;
-		style = UI_PULSE;
-	} else if((a->generic.flags & QMF_HIGHLIGHT_IF_FOCUS) && (a->generic.parent->cursor == a->generic.menuPosition)) {
-		color = color_highlight;
-	}
-
-	x = a->generic.x;
-	y = a->generic.y;
-
-	ST_DrawString(x, y, a->string, UI_LEFT | style, color, 1.00);
-
-	if(a->generic.parent->cursor == a->generic.menuPosition) {
-		// draw cursor
-		ST_DrawChar(x - BASEFONT_INDENT * 2, y, 13, UI_LEFT, color, 1.00);
-	}
-}
-
-static void RadioButton_Init(menuelement_s *rb) {
-	int len;
-	// calculate bounds
-	if(rb->string)
-		len = strlenru(rb->string);
-	else
-		len = 0;
-
-	rb->generic.left = rb->generic.x - (len + 1) * BASEFONT_INDENT;
-	rb->generic.right = rb->generic.x + 6 * BASEFONT_INDENT;
-	rb->generic.top = rb->generic.y;
-	rb->generic.bottom = rb->generic.y + BASEFONT_HEIGHT;
-}
-
-static sfxHandle_t RadioButton_Key(menuelement_s *rb, int key) {
-	switch(key) {
-	case K_MOUSE1:
-		if(!(rb->generic.flags & QMF_HASMOUSEFOCUS)) break;
-
-	case K_ENTER:
-		rb->curvalue = !rb->curvalue;
-		if(rb->generic.callback) rb->generic.callback(rb, QM_ACTIVATED);
-		UI_GeneralCallback(rb);
-
-		return (menu_move_sound);
-	}
-
-	// key not handled
-	return 0;
-}
-
-static void RadioButton_Draw(menuelement_s *rb) {
-	int x;
-	int y;
-	float *color;
-	int style;
-	qboolean focus;
-
-	x = rb->generic.x;
-	y = rb->generic.y;
-
-	focus = (rb->generic.parent->cursor == rb->generic.menuPosition);
-
-	if(rb->generic.flags & QMF_GRAYED) {
-		color = color_disabled;
-		style = UI_LEFT;
-	} else if(focus) {
-		color = color_highlight;
-		style = UI_LEFT | UI_PULSE;
-	} else {
-		if(!rb->color) {
-			color = color_white;
-		} else {
-			color = rb->color;
-		}
-		style = UI_LEFT;
-	}
-
-	if(rb->string) ST_DrawString(x - BASEFONT_INDENT * 2, y, rb->string, UI_RIGHT, color, 1.00);
-
-	if(!rb->curvalue) {
-		UI_DrawHandlePic(x, y + 1, 10, 10, uis.rb_off);
-		ST_DrawString(x + 16, y, "off", style, color, 1.00);
-	} else {
-		UI_DrawHandlePic(x, y + 1, 10, 10, uis.rb_on);
-		ST_DrawString(x + 16, y, "on", style, color, 1.00);
-	}
-}
-
 static void Slider_Init(menuelement_s *s) {
 	int len;
 
@@ -306,110 +268,6 @@ static void Slider_Init(menuelement_s *s) {
 	s->generic.right = (s->generic.x + 4) + (SLIDER_RANGE * BASEFONT_INDENT);
 	s->generic.top = s->generic.y;
 	s->generic.bottom = s->generic.y + BASEFONT_HEIGHT;
-}
-
-static sfxHandle_t Slider_Key(menuelement_s *s, int key) {
-	sfxHandle_t sound;
-	int x;
-	int oldvalue;
-
-	switch(key) {
-	case K_MOUSE1:
-		x = uis.cursorx - s->generic.x;
-		oldvalue = s->curvalue;
-		s->curvalue = (x / (float)(SLIDER_RANGE * BASEFONT_INDENT)) * (s->maxvalue - s->minvalue) + s->minvalue;
-
-		if(s->curvalue < s->minvalue)
-			s->curvalue = s->minvalue;
-		else if(s->curvalue > s->maxvalue)
-			s->curvalue = s->maxvalue;
-		if(s->curvalue != oldvalue)
-			sound = menu_move_sound;
-		else
-			sound = 0;
-		break;
-
-	case K_LEFTARROW:
-		if(s->curvalue > s->minvalue) {
-			s->curvalue--;
-			sound = menu_move_sound;
-		} else
-			sound = menu_buzz_sound;
-		break;
-
-	case K_RIGHTARROW:
-		if(s->curvalue < s->maxvalue) {
-			s->curvalue++;
-			sound = menu_move_sound;
-		} else
-			sound = menu_buzz_sound;
-		break;
-
-	default:
-		// key not handled
-		sound = 0;
-		break;
-	}
-
-	if(sound && s->generic.callback) s->generic.callback(s, QM_ACTIVATED);
-	UI_GeneralCallback(s);
-
-	return (sound);
-}
-
-static void Slider_Draw(menuelement_s *s) {
-	int x, y;
-	int val;
-	int style;
-	float *color;
-	int button;
-	qboolean focus;
-
-	x = s->generic.x;
-	y = s->generic.y;
-	val = s->curvalue;
-	focus = (s->generic.parent->cursor == s->generic.menuPosition);
-
-	if(s->generic.flags & QMF_GRAYED) {
-		color = color_disabled;
-		style = 0;
-	} else if(focus) {
-		color = color_highlight;
-		style = UI_PULSE;
-	} else {
-		color = color_white;
-		style = 0;
-	}
-
-	// draw label
-	ST_DrawString(x - BASEFONT_INDENT * 2, y, s->string, UI_RIGHT | style, color, 1.00);
-	ST_DrawString(x + (SLIDER_RANGE * BASEFONT_INDENT) + BASEFONT_INDENT, y, va("%i", val), UI_LEFT | style, color, 1.00);
-
-	// draw slider
-	trap_R_SetColor(color);
-	UI_DrawHandlePic(x, y + 2, (SLIDER_RANGE * BASEFONT_INDENT), SLIDER_RANGE, sliderBar);
-	trap_R_SetColor(NULL);
-
-	// clamp thumb
-	if(s->maxvalue > s->minvalue) {
-		s->range = (s->curvalue - s->minvalue) / (float)(s->maxvalue - s->minvalue);
-		if(s->range < 0) {
-			s->range = 0;
-		} else if(s->range > 1) {
-			s->range = 1;
-		}
-	} else {
-		s->range = 0;
-	}
-
-	// draw thumb
-	if(focus) {
-		button = sliderButton_1;
-	} else {
-		button = sliderButton_0;
-	}
-
-	UI_DrawHandlePic((int)(x + (SLIDER_RANGE * BASEFONT_INDENT) * s->range) - (s->range * SLIDER_RANGE), y + 2, SLIDER_RANGE, SLIDER_RANGE, button);
 }
 
 static void SpinControl_Init(menuelement_s *s) {
@@ -467,7 +325,7 @@ static sfxHandle_t SpinControl_Key(menuelement_s *s, int key) {
 	}
 
 	if(sound && s->generic.callback) s->generic.callback(s, QM_ACTIVATED);
-	UI_GeneralCallback(s);
+	//UI_GeneralCallback(s);
 	
 	return (sound);
 }
@@ -567,7 +425,7 @@ sfxHandle_t ScrollList_Key(menuelement_s *l, int key) {
 						return menu_move_sound;
 					} else {
 						if((clickdelay < 350) && !(l->generic.flags & (QMF_GRAYED | QMF_INACTIVE))) {
-							return UI_GeneralCallback(l);
+							//return UI_GeneralCallback(l);
 						}
 					}
 				}
@@ -761,10 +619,7 @@ static void ScrollList_Draw(menuelement_s *l) {
 
 	if(l->generic.style == LST_GRID && hasfocus && select_i >= 0 && l->itemnames[select_i]) {
 		const char *item = l->itemnames[select_i];
-		float wordsize = BASEFONT_HEIGHT * l->size;
-
-		ST_DrawRoundedRect((uis.cursorx - BASEFONT_INDENT) + 18, uis.cursory - (4 + 18), ((ST_StringCount(item) + 1) * BASEFONT_INDENT) + BASEFONT_WIDTH, wordsize + 8, 5, color_dim);
-		ST_DrawString(uis.cursorx + 18, uis.cursory - 18, item, style | UI_DROPSHADOW, color_white, l->size);
+		DrawTip(item);
 	}
 }
 
@@ -870,13 +725,7 @@ static void MField_CharEvent(mfield_t *edit, int ch) {
 		return;
 	}
 
-	if(!trap_Key_GetOverstrikeMode()) {
-		if((edit->cursor == MAX_EDIT_LINE - 1) || (edit->maxchars && edit->cursor >= edit->maxchars)) return;
-	} else {
-		// insert mode
-		if((len == MAX_EDIT_LINE - 1) || (edit->maxchars && len >= edit->maxchars)) return;
-		memmove(edit->buffer + edit->cursor + 1, edit->buffer + edit->cursor, len + 1 - edit->cursor);
-	}
+	if((edit->cursor == MAX_EDIT_LINE - 1) || (edit->maxchars && edit->cursor >= edit->maxchars)) return;
 
 	edit->buffer[edit->cursor] = ch;
 	if(!edit->maxchars || edit->cursor < edit->maxchars - 1) edit->cursor++;
@@ -892,12 +741,6 @@ static void MField_CharEvent(mfield_t *edit, int ch) {
 
 static void MField_KeyDownEvent(mfield_t *edit, int key) {
 	int len;
-
-	// shift-insert is paste
-	if(((key == K_INS) || (key == K_KP_INS)) && trap_Key_IsDown(K_SHIFT)) {
-		MField_Paste(edit);
-		return;
-	}
 
 	len = strlen(edit->buffer);
 
@@ -925,11 +768,6 @@ static void MField_KeyDownEvent(mfield_t *edit, int key) {
 		if(edit->cursor < edit->scroll) {
 			edit->scroll--;
 		}
-		return;
-	}
-
-	if(key == K_INS || key == K_KP_INS) {
-		trap_Key_SetOverstrikeMode(!trap_Key_GetOverstrikeMode());
 		return;
 	}
 }
@@ -1071,9 +909,9 @@ void Menu_ElementsDraw(void) {
 
 		switch(uis.items[i].type) {
 		    case MTYPE_BUTTON: Button_Draw(&uis.items[i]); break;
-			case MTYPE_RADIOBUTTON: RadioButton_Draw(&uis.items[i]); break;
+		    case MTYPE_CHECKBOX: Checkbox_Draw(&uis.items[i]); break;
+		    case MTYPE_SLIDER: Slider_Draw(&uis.items[i]); break;
 			case MTYPE_FIELD: MenuField_Draw(&uis.items[i]); break;
-			case MTYPE_SLIDER: Slider_Draw(&uis.items[i]); break;
 			case MTYPE_SPINCONTROL: SpinControl_Draw(&uis.items[i]); break;
 			case MTYPE_ACTION: Action_Draw(&uis.items[i]); break;
 			case MTYPE_BITMAP: Bitmap_Draw(&uis.items[i]); break;
@@ -1101,6 +939,7 @@ sfxHandle_t Menu_DefaultKey(int key) {
 	// menu system keys
 	switch(key) {
 	case K_ESCAPE: UI_PopMenu(); return menu_out_sound;
+    case K_F5: UI_HotReloadJS(); return menu_out_sound;
 	}
 
 	// route key stimulus to widget
@@ -1108,13 +947,11 @@ sfxHandle_t Menu_DefaultKey(int key) {
 	if(item && !(item->flags & (QMF_INACTIVE))) {
 		switch(item->type) {
 		case MTYPE_SPINCONTROL: sound = SpinControl_Key(item, key); break;
-		case MTYPE_RADIOBUTTON: sound = RadioButton_Key(item, key); break;
-		case MTYPE_SLIDER: sound = Slider_Key(item, key); break;
 		case MTYPE_SCROLLLIST: sound = ScrollList_Key(item, key); break;
 		case MTYPE_FIELD:
 			sound = MenuField_Key(item, &key);
 			item->callback(item, QM_ACTIVATED);
-			UI_GeneralCallback(item);
+			//UI_GeneralCallback(item);
 			break;
 		}
 
@@ -1125,8 +962,8 @@ sfxHandle_t Menu_DefaultKey(int key) {
 	switch(key) {
 	case K_F11: uis.debug ^= 1; break;
 	case K_F12: trap_Cmd(EXEC_APPEND, "screenshotJPEG\n"); break;
-	case K_MOUSE1: if(Menu_CursorOnItem(item->id) && !(item->flags & QMF_INACTIVE)) return UI_GeneralCallback(item); break;
-	case K_ENTER: if(!(item->flags & QMF_INACTIVE)) return UI_GeneralCallback(item); break;
+	case K_MOUSE1: if(Menu_CursorOnItem(item->id) && !(item->flags & QMF_INACTIVE)) return UI_GeneralCallback(item, key); break;
+	case K_ENTER: if(!(item->flags & QMF_INACTIVE)) return UI_GeneralCallback(item, key); break;
 	}
 	
 	JS_MenuKey(key);
@@ -1351,7 +1188,7 @@ void UI_SetHitbox(int id, float x, float y, float w, float h) {
 	ui.e[id].generic.bottom = y + h;
 }
 
-int UI_CButton(int id, float x, float y, float w, float h, char *text, int style, float size, int colortext, int colorbg, int corner, int margin, char *action, void (*callback)(void *self, int event)) {
+int UI_CButton(int id, float x, float y, float w, float h, char *text, int style, float size, int colortext, int colorbg, int corner, int margin, char *action) {
     if(id >= MAX_MENUITEMS) {
         trap_Print("^3Menu item limit exceeded");
         return -1;
@@ -1370,41 +1207,59 @@ int UI_CButton(int id, float x, float y, float w, float h, char *text, int style
 	uis.items[id].corner = corner;
 	uis.items[id].margin = margin;
 	Q_StringCopy(uis.items[id].action, action, UI_ACTIONLENGTH);
-	uis.items[id].callback = callback;
-	Button_Init(&uis.items[id]);
 	return id;
 }
 
-void UI_CSlider(menuelement_s *e, float x, float y, char *text, char *var, float min, float max, float mod, void (*callback)(void *self, int event), int callid) {
-	e->generic.type = MTYPE_SLIDER;
-	e->generic.x = x;
-	e->generic.y = y;
-	e->string = text;
-	e->generic.callback = callback;
-	e->generic.callid = callid;
-	e->minvalue = min;
-	e->maxvalue = max;
-	e->generic.mode = mod;
-	if(var) {
-		e->generic.general_cbtype = CB_VARIABLE;
-		e->generic.var = var;
-	}
-	e->color = color_white;
+int UI_CCheckbox(int id, float x, float y, float w, float h, char *text, float size, int colortext, int colorbg, int corner, int margin, char *action) {
+    if(id >= MAX_MENUITEMS) {
+        trap_Print("^3Menu item limit exceeded");
+        return -1;
+    }
+    uis.items[id].type = MTYPE_CHECKBOX;
+    uis.items[id].id = id;
+	uis.items[id].x = x;
+	uis.items[id].y = y;
+	uis.items[id].w = w;
+	uis.items[id].h = h;
+	Q_StringCopy(uis.items[id].text, text, UI_STRINGLENGTH);
+	uis.items[id].style = 0;
+	uis.items[id].size = size;
+	uis.items[id].colortext = colortext;
+	uis.items[id].colorbg = colorbg;
+	uis.items[id].corner = corner;
+	uis.items[id].margin = margin;
+	Q_StringCopy(uis.items[id].action, action, UI_ACTIONLENGTH);
+	
+	uis.items[id].value = cvarFloat(uis.items[id].action);
+	return id;
 }
 
-void UI_CRadioButton(menuelement_s *e, float x, float y, char *text, char *var, int mod, void (*callback)(void *self, int event), int callid) {
-	e->generic.type = MTYPE_RADIOBUTTON;
-	e->generic.x = x;
-	e->generic.y = y;
-	e->string = text;
-	e->generic.callback = callback;
-	e->generic.callid = callid;
-	e->generic.mode = mod;
-	if(var) {
-		e->generic.general_cbtype = CB_VARIABLE;
-		e->generic.var = var;
-	}
-	e->color = color_white;
+int UI_CSlider(int id, float x, float y, float w, float h, char *text, float size, int colortext, int colorbg, int corner, int margin, char *action, float min, float max, int mode) {
+    if(id >= MAX_MENUITEMS) {
+        trap_Print("^3Menu item limit exceeded");
+        return -1;
+    }
+    uis.items[id].type = MTYPE_SLIDER;
+    uis.items[id].id = id;
+	uis.items[id].x = x;
+	uis.items[id].y = y;
+	uis.items[id].w = w;
+	uis.items[id].h = h;
+	Q_StringCopy(uis.items[id].text, text, UI_STRINGLENGTH);
+	uis.items[id].style = 0;
+	uis.items[id].size = size;
+	uis.items[id].colortext = colortext;
+	uis.items[id].colorbg = colorbg;
+	uis.items[id].corner = corner;
+	uis.items[id].margin = margin;
+	Q_StringCopy(uis.items[id].action, action, UI_ACTIONLENGTH);
+	
+	uis.items[id].value = cvarFloat(uis.items[id].action);
+	trap_Print(va("^4 Init slider with %f value", cvarFloat(uis.items[id].action)));
+	uis.items[id].min = min;
+	uis.items[id].max = max;
+	uis.items[id].mode = mode;
+	return id;
 }
 
 void UI_CSpinControl(menuelement_s *e, float x, float y, char *text, const char **list, char *var, void (*callback)(void *self, int event), int callid) {

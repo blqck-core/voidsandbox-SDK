@@ -65,7 +65,6 @@ Check for lava / slime contents and drowning
 =============
 */
 static void P_WorldEffects(gentity_t *ent) {
-	qboolean envirosuit;
 	int waterlevel;
 
 	if(ent->client->noclip) {
@@ -75,17 +74,10 @@ static void P_WorldEffects(gentity_t *ent) {
 
 	waterlevel = ent->waterlevel;
 
-	envirosuit = ent->client->ps.powerups[PW_BATTLESUIT] > level.time;
-
 	//
 	// check for drowning
 	//
 	if(waterlevel == 3) {
-		// envirosuit give air
-		if(envirosuit) {
-			ent->client->airOutTime = level.time + 10000;
-		}
-
 		// if out of air, start drowning
 		if(ent->client->airOutTime < level.time) {
 			// drown!
@@ -120,15 +112,8 @@ static void P_WorldEffects(gentity_t *ent) {
 	//
 	if(waterlevel && (ent->watertype & (CONTENTS_LAVA | CONTENTS_SLIME))) {
 		if(ent->health > 0 && ent->pain_debounce_time <= level.time) {
-			if(!envirosuit) {
-				if(ent->watertype & CONTENTS_LAVA) {
-					G_Damage(ent, NULL, NULL, NULL, NULL, 30 * waterlevel, 0, MOD_LAVA);
-				}
-
-				if(ent->watertype & CONTENTS_SLIME) {
-					G_Damage(ent, NULL, NULL, NULL, NULL, 10 * waterlevel, 0, MOD_SLIME);
-				}
-			}
+			if(ent->watertype & CONTENTS_LAVA) G_Damage(ent, NULL, NULL, NULL, NULL, 30 * waterlevel, 0, MOD_LAVA);
+			if(ent->watertype & CONTENTS_SLIME) G_Damage(ent, NULL, NULL, NULL, NULL, 10 * waterlevel, 0, MOD_SLIME);
 		}
 	}
 }
@@ -220,14 +205,7 @@ static void G_TouchTriggers(gentity_t *ent) {
 		}
 
 		// ignore most entities if a spectator
-		if(ent->client->sess.sessionTeam == TEAM_SPECTATOR) {
-			if(hit->s.eType != ET_TELEPORT_TRIGGER &&
-			   // this is ugly but adding a new ET_? type will
-			   // most likely cause network incompatibilities
-			   hit->touch != Touch_DoorTrigger) {
-				continue;
-			}
-		}
+		if(ent->client->sess.sessionTeam == TEAM_SPECTATOR) continue;
 
 		// use seperate code for determining if an item is picked up
 		// so you don't have to actually contact its bounding box
@@ -302,52 +280,16 @@ static void G_KillVoid(gentity_t *ent) {
 	if(orig[2] <= -520000) G_Damage(ent, NULL, NULL, NULL, NULL, 1000, 0, MOD_UNKNOWN);
 }
 
-static void G_MakeUnlimitedAmmo(gentity_t *ent) {
-	int i;
-	for(i = 1; i < WEAPONS_NUM; i++) {
-		ent->swep_ammo[i] = 9999;
-	}
-	SetUnlimitedWeapons(ent);
-}
-
 static void ClientTimerActions(gentity_t *ent, int msec) {
 	gclient_t *client;
-	int maxHealth;
 
 	client = ent->client;
 	client->timeResidual += msec;
 
 	while(client->timeResidual >= 1000) {
 		client->timeResidual -= 1000;
-
-		if(gameInfoItems[client->ps.stats[STAT_PERSISTANT_POWERUP]].giTag == PW_AMMOREGEN) G_MakeUnlimitedAmmo(ent);
-
-		// regenerate
-		if(gameInfoItems[client->ps.stats[STAT_PERSISTANT_POWERUP]].giTag == PW_GUARD) {
-			maxHealth = client->ps.stats[STAT_MAX_HEALTH] / 2;
-		} else if(client->ps.powerups[PW_REGEN]) {
-			maxHealth = client->ps.stats[STAT_MAX_HEALTH];
-		} else {
-			maxHealth = 0;
-		}
-		if(maxHealth) {
-			if(ent->health < maxHealth) {
-				ent->health += 15;
-				if(ent->health > maxHealth * 1.1) {
-					ent->health = maxHealth * 1.1;
-				}
-			} else if(ent->health < maxHealth * 2) {
-				ent->health += 5;
-				if(ent->health > maxHealth * 2) {
-					ent->health = maxHealth * 2;
-				}
-			}
-		} else {
-			if(ent->health < client->ps.stats[STAT_MAX_HEALTH]) {
-				ent->health += 1;
-				if(ent->health > client->ps.stats[STAT_MAX_HEALTH]) ent->health = client->ps.stats[STAT_MAX_HEALTH];
-			}
-		}
+		
+		if(ent->health+1 <= MAX_PLAYER_HEALTH) ent->health += 1;
 
 		G_SendGameCvars(ent);   // send game setting to client for sync
 		G_SendSwepWeapons(ent); // send sweps list to client for sync
@@ -367,7 +309,6 @@ static void SendEntityInfoToClient(gentity_t *ent, int msec) {
 }
 
 static void ClientIntermissionThink(gclient_t *client) {
-	client->ps.eFlags &= ~EF_TALK;
 	client->ps.eFlags &= ~EF_FIRING;
 
 	// the level will exit when everyone wants to or after timeouts
@@ -376,7 +317,7 @@ static void ClientIntermissionThink(gclient_t *client) {
 	// swap and latch button actions
 	client->oldbuttons = client->buttons;
 	client->buttons = client->pers.cmd.buttons;
-	if(client->buttons & (BUTTON_ATTACK | BUTTON_USE_HOLDABLE) & (client->oldbuttons ^ client->buttons)) {
+	if(client->buttons & BUTTON_ATTACK & (client->oldbuttons ^ client->buttons)) {
 		client->readyToExit = 1;
 	}
 }
@@ -391,7 +332,7 @@ but any server game effects are handled here
 static void ClientEvents(gentity_t *ent, int oldEventSequence) {
 	int i, event, damage;
 	gclient_t *client;
-	vec3_t dir, origin, angles;
+	vec3_t dir;
 
 	client = ent->client;
 
@@ -416,67 +357,11 @@ static void ClientEvents(gentity_t *ent, int oldEventSequence) {
 			ent->pain_debounce_time = level.time + 200; // no normal pain sound
 			G_Damage(ent, NULL, NULL, NULL, NULL, damage, 0, MOD_FALLING);
 			break;
-
 		case EV_FIRE_WEAPON: FireWeapon(ent); break;
-
-		case EV_USE_ITEM1: // teleporter
-			SelectSpawnPoint(ent->client->ps.origin, origin, angles);
-			TeleportPlayer(ent, origin, angles, qfalse);
-			break;
-
-		case EV_USE_ITEM2: // medkit
-			ent->health = ent->client->ps.stats[STAT_MAX_HEALTH] + 25;
-			break;
-
-		case EV_USE_ITEM3: // kamikaze
-			ent->client->invulnerabilityTime = 0;
-			G_StartKamikaze(ent);
-			break;
-
-		case EV_USE_ITEM4: // portal
-			if(ent->client->portalID) {
-				DropPortalSource(ent);
-			} else {
-				DropPortalDestination(ent);
-			}
-			break;
-		case EV_USE_ITEM5: // invulnerability
-			ent->client->invulnerabilityTime = level.time + 10000;
-			break;
 
 		default: break;
 		}
 	}
-}
-
-static int StuckInOtherClient(gentity_t *ent) {
-	int i;
-	gentity_t *ent2;
-
-	ent2 = &g_entities[0];
-	for(i = 0; i < MAX_CLIENTS; i++, ent2++) {
-		if(ent2 == ent) {
-			continue;
-		}
-		if(!ent2->inuse) {
-			continue;
-		}
-		if(!ent2->client) {
-			continue;
-		}
-		if(ent2->health <= 0) {
-			continue;
-		}
-		//
-		if(ent2->r.absmin[0] > ent->r.absmax[0]) continue;
-		if(ent2->r.absmin[1] > ent->r.absmax[1]) continue;
-		if(ent2->r.absmin[2] > ent->r.absmax[2]) continue;
-		if(ent2->r.absmax[0] < ent->r.absmin[0]) continue;
-		if(ent2->r.absmax[1] < ent->r.absmin[1]) continue;
-		if(ent2->r.absmax[2] < ent->r.absmin[2]) continue;
-		return qtrue;
-	}
-	return qfalse;
 }
 
 static void SendPendingPredictableEvents(playerState_t *ps) {
@@ -640,12 +525,6 @@ static void ClientThink_real(gentity_t *ent) {
 
 	if(ent->client->noclip) client->ps.speed *= 2.50;
 
-	if(gameInfoItems[client->ps.stats[STAT_PERSISTANT_POWERUP]].giTag == PW_SCOUT) client->ps.speed *= 1.5;
-	if(client->ps.powerups[PW_HASTE]) client->ps.speed *= 1.3;
-
-	// Let go of the hook if we aren't firing
-	if(client->ps.weapon == WP_GRAPPLING_HOOK && client->hook && !(ucmd->buttons & BUTTON_ATTACK)) Weapon_HookFree(client->hook);
-
 	// set up for pmove
 	oldEventSequence = client->ps.eventSequence;
 
@@ -653,32 +532,7 @@ static void ClientThink_real(gentity_t *ent) {
 
 	// check for the hit-scan gauntlet, don't let the action
 	// go through as an attack unless it actually hits something
-	if(gameInfoWeapons[client->ps.weapon].wType == WT_MELEE && !(ucmd->buttons & BUTTON_TALK) && (ucmd->buttons & BUTTON_ATTACK) && client->ps.weaponTime <= 0 && client->ps.pm_type != PM_DEAD) pm.gauntletHit = Melee_Fire(ent, client->ps.weapon);
-
-	// check for invulnerability expansion before doing the Pmove
-	if(client->ps.powerups[PW_INVULNERABILITY]) {
-		if(!(client->ps.pm_flags & PMF_INVULEXPAND)) {
-			vec3_t mins = {-42, -42, -42};
-			vec3_t maxs = {42, 42, 42};
-			vec3_t oldmins, oldmaxs;
-
-			VectorCopy(ent->r.mins, oldmins);
-			VectorCopy(ent->r.maxs, oldmaxs);
-			// expand
-			VectorCopy(mins, ent->r.mins);
-			VectorCopy(maxs, ent->r.maxs);
-			trap_LinkEntity(ent);
-			// check if this would get anyone stuck in this player
-			if(!StuckInOtherClient(ent)) {
-				// set flag so the expanded size will be set in PM_CheckDuck
-				client->ps.pm_flags |= PMF_INVULEXPAND;
-			}
-			// set back
-			VectorCopy(oldmins, ent->r.mins);
-			VectorCopy(oldmaxs, ent->r.maxs);
-			trap_LinkEntity(ent);
-		}
-	}
+	if(gameInfoWeapons[client->ps.weapon].wType == WT_MELEE && (ucmd->buttons & BUTTON_ATTACK) && client->ps.weaponTime <= 0 && client->ps.pm_type != PM_DEAD) pm.gauntletHit = Melee_Fire(ent, client->ps.weapon);
 
 	pm.ps = &client->ps;
 	pm.cmd = *ucmd;
@@ -714,9 +568,7 @@ static void ClientThink_real(gentity_t *ent) {
 
 	ent->waterlevel = pm.waterlevel;
 	ent->watertype = pm.watertype;
-	ent->client->ps.weapon = ent->swep_id;
-	ent->client->ps.stats[STAT_AMMO] = ent->swep_ammo[ent->swep_id];
-	ent->s.weapon = ent->swep_ammo[ent->swep_id];
+	ent->client->ps.stats[STAT_AMMO] = ent->swep_ammo[ent->s.weapon];
 
 	// execute client events
 	ClientEvents(ent, oldEventSequence);
@@ -749,7 +601,7 @@ static void ClientThink_real(gentity_t *ent) {
 
 	// check for respawning
 	if(client->ps.stats[STAT_HEALTH] <= 0) {
-		if(level.time > client->respawnTime && ucmd->buttons & (BUTTON_ATTACK | BUTTON_USE_HOLDABLE)) ClientRespawn(ent);
+		if(level.time > client->respawnTime && ucmd->buttons & BUTTON_ATTACK) ClientRespawn(ent);
 		return;
 	}
 
@@ -782,19 +634,6 @@ void G_RunClient(gentity_t *ent) {
 	}
 	ent->client->pers.cmd.serverTime = level.time;
 	ClientThink_real(ent);
-}
-
-qboolean G_CheckWeapon(int clientNum, int wp, int finish) {
-	gentity_t *ent;
-
-	ent = g_entities + clientNum;
-	if(ent->swep_list[wp] >= WS_HAVE) {
-		if(finish) ent->swep_id = wp;
-		ClientUserinfoChanged(clientNum);
-		return qtrue;
-	} else {
-		return qfalse;
-	}
 }
 
 int G_CheckWeaponAmmo(int clientNum, int wp) {
@@ -878,23 +717,6 @@ void ClientEndFrame(gentity_t *ent) {
 		if(ent->client->ps.powerups[i] < level.time) {
 			ent->client->ps.powerups[i] = 0;
 		}
-	}
-
-	// set powerup for player animation
-	if(gameInfoItems[ent->client->ps.stats[STAT_PERSISTANT_POWERUP]].giTag == PW_GUARD) {
-		ent->client->ps.powerups[PW_GUARD] = level.time;
-	}
-	if(gameInfoItems[ent->client->ps.stats[STAT_PERSISTANT_POWERUP]].giTag == PW_SCOUT) {
-		ent->client->ps.powerups[PW_SCOUT] = level.time;
-	}
-	if(gameInfoItems[ent->client->ps.stats[STAT_PERSISTANT_POWERUP]].giTag == PW_DOUBLER) {
-		ent->client->ps.powerups[PW_DOUBLER] = level.time;
-	}
-	if(gameInfoItems[ent->client->ps.stats[STAT_PERSISTANT_POWERUP]].giTag == PW_AMMOREGEN) {
-		ent->client->ps.powerups[PW_AMMOREGEN] = level.time;
-	}
-	if(ent->client->invulnerabilityTime > level.time) {
-		ent->client->ps.powerups[PW_INVULNERABILITY] = level.time;
 	}
 
 	//

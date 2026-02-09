@@ -151,4 +151,6 @@ int trap_R_LerpTag(orientation_t *tag, clipHandle_t mod, int startFrame, int end
 void trap_GetGlconfig(glconfig_t *glconfig);
 int trap_Key_GetCatcher(void);
 void trap_R_RemapShader(const char *oldShader, const char *newShader, const char *timeOffset);
+void trap_Key_KeynumToStringBuf(int keynum, char *buf, int buflen);
+void trap_Key_GetBindingBuf(int keynum, char *buf, int buflen);
 #endif

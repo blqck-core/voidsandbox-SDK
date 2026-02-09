@@ -34,101 +34,17 @@ void TossClientItems(gentity_t *self) {
 	if(!gameInfoNPCTypes[self->npcType].dropItems) return;
 
 	// drop all weapons
-	if(gameInfoItems[self->client->ps.stats[STAT_PERSISTANT_POWERUP]].giTag != PW_AMMOREGEN) {
-		for(i = 1; i < WEAPONS_NUM; i++) {
-			if(self->swep_list[i] >= WS_HAVE) {
-				item = BG_FindItemForWeapon(i);
-				if(!item || i == WP_GAUNTLET || i == WP_PHYSGUN || i == WP_GRAVITYGUN || i == WP_TOOLGUN) continue;
-				drop = Drop_Item(self, item);
-				drop->count = (self->swep_ammo[i]);
-				if(drop->count < 1) {
-					drop->count = 1;
-				}
-			}
-		}
-	}
-
-	// drop all powerups
-	for(i = 1; i < PW_NUM_POWERUPS; i++) {
-		if(self->client->ps.powerups[i] > level.time) {
-			item = BG_FindItemForPowerup(i);
-			if(!item) continue;
+	for(i = 1; i < WEAPONS_NUM; i++) {
+		if(self->swep_list[i] >= WS_HAVE) {
+			item = BG_FindItemForWeapon(i);
+			if(!item || i == WP_GAUNTLET || i == WP_PHYSGUN || i == WP_GRAVITYGUN || i == WP_TOOLGUN) continue;
 			drop = Drop_Item(self, item);
-			drop->count = (self->client->ps.powerups[i] - level.time) / 1000;
+			drop->count = (self->swep_ammo[i]);
 			if(drop->count < 1) {
 				drop->count = 1;
 			}
 		}
 	}
-
-	// drop holdable
-	if(self->client->ps.stats[STAT_HOLDABLE_ITEM]) {
-		item = BG_FindItemForHoldable(gameInfoItems[self->client->ps.stats[STAT_HOLDABLE_ITEM]].giTag);
-		if(item) drop = Drop_Item(self, item);
-	}
-}
-
-/*
-=================
-TossClientCubes
-=================
-*/
-extern gentity_t *neutralObelisk;
-
-void TossClientCubes(gentity_t *self) {
-	item_t *item;
-	gentity_t *drop;
-	vec3_t velocity;
-	vec3_t angles;
-	vec3_t origin;
-
-	self->client->ps.generic1 = 0;
-
-	if(self->client->sess.sessionTeam == TEAM_RED) {
-		item = BG_FindItem("Red Cube");
-	} else {
-		item = BG_FindItem("Blue Cube");
-	}
-
-	angles[YAW] = (float)(level.time % 360);
-	angles[PITCH] = 0; // always forward
-	angles[ROLL] = 0;
-
-	AngleVectors(angles, velocity, NULL, NULL);
-	VectorScale(velocity, 150, velocity);
-	velocity[2] += 200 + crandom() * 50;
-
-	if(neutralObelisk) {
-		VectorCopy(neutralObelisk->s.pos.trBase, origin);
-		origin[2] += 44;
-	} else {
-		VectorClear(origin);
-	}
-
-	drop = LaunchItem(item, origin, velocity);
-	drop->nextthink = level.time + 300 * 1000;
-	drop->think = G_FreeEntity;
-	drop->spawnflags = self->client->sess.sessionTeam;
-}
-
-/*
-=================
-TossClientPersistantPowerups
-=================
-*/
-void TossClientPersistantPowerups(gentity_t *ent) {
-	gentity_t *powerup;
-
-	if(!ent->client || !ent->client->persistantPowerup) return;
-
-	powerup = ent->client->persistantPowerup;
-	powerup->r.svFlags &= ~SVF_NOCLIENT;
-	powerup->s.eFlags &= ~EF_NODRAW;
-	powerup->r.contents = CONTENTS_TRIGGER;
-	trap_LinkEntity(powerup);
-
-	ent->client->ps.stats[STAT_PERSISTANT_POWERUP] = 0;
-	ent->client->persistantPowerup = NULL;
 }
 
 /*
@@ -137,21 +53,6 @@ GibEntity
 ==================
 */
 static void GibEntity(gentity_t *self, int killer) {
-	gentity_t *ent;
-	int i;
-
-	// if this entity still has kamikaze
-	if(self->s.eFlags & EF_KAMIKAZE) {
-		// check if there is a kamikaze timer around for this owner
-		for(i = 0; i < MAX_GENTITIES; i++) {
-			ent = &g_entities[i];
-			if(!ent->inuse) continue;
-			if(ent->activator != self) continue;
-			if(strcmp(ent->classname, "kamikaze timer")) continue;
-			G_FreeEntity(ent);
-			break;
-		}
-	}
 	G_AddEvent(self, EV_GIB_PLAYER, killer);
 	self->takedamage = qfalse;
 	self->s.eType = ET_INVISIBLE;
@@ -177,47 +78,15 @@ void body_die(gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int da
 
 /*
 ==================
-Kamikaze_DeathActivate
-==================
-*/
-static void Kamikaze_DeathActivate(gentity_t *ent) {
-	G_StartKamikaze(ent);
-	G_FreeEntity(ent);
-}
-
-/*
-==================
-Kamikaze_DeathTimer
-==================
-*/
-static void Kamikaze_DeathTimer(gentity_t *self) {
-	gentity_t *ent;
-
-	ent = G_Spawn();
-	ent->classname = "kamikaze timer";
-	VectorCopy(self->s.pos.trBase, ent->s.pos.trBase);
-	ent->r.svFlags |= SVF_NOCLIENT;
-	ent->think = Kamikaze_DeathActivate;
-	ent->nextthink = level.time + 500;
-
-	ent->activator = self;
-}
-
-/*
-==================
 player_die
 ==================
 */
 void player_die(gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int meansOfDeath) {
 	gentity_t *ent;
-	int anim;
-	int contents;
 	int killer;
 	int i;
 
 	if(self->client->ps.pm_type == PM_DEAD || level.intermissiontime) return;
-
-	if(self->client && self->client->hook) Weapon_HookFree(self->client->hook);
 
 	self->client->noclip = 0;
 
@@ -250,24 +119,7 @@ void player_die(gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int 
 		AddScore(self, -1);
 	}
 
-	// if client is in a nodrop area, don't drop anything (but return CTF flags!)
-	contents = trap_PointContents(self->r.currentOrigin, -1);
-	if(!(contents & CONTENTS_NODROP)) {
-		TossClientItems(self);
-	} else {
-		if(self->client->ps.powerups[PW_NEUTRALFLAG]) {
-			Team_ReturnFlag(TEAM_FREE);
-		} else if(self->client->ps.powerups[PW_REDFLAG]) {
-			Team_ReturnFlag(TEAM_RED);
-		} else if(self->client->ps.powerups[PW_BLUEFLAG]) {
-			Team_ReturnFlag(TEAM_BLUE);
-		}
-	}
-
-	TossClientPersistantPowerups(self);
-	if(cvarInt("g_gametype") == GT_HARVESTER) {
-		TossClientCubes(self);
-	}
+	TossClientItems(self);
 
 	Cmd_Score_f(self); // show scores
 	// send updated scores to any clients that are following this one,
@@ -303,43 +155,7 @@ void player_die(gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int 
 	// remove powerups
 	memset(self->client->ps.powerups, 0, sizeof(self->client->ps.powerups));
 
-	// never gib in a nodrop
-	if((self->health <= GIB_HEALTH && !(contents & CONTENTS_NODROP) && cvarInt("g_blood")) || meansOfDeath == MOD_SUICIDE) {
-		// gib death
-		GibEntity(self, killer);
-	} else {
-		// normal death
-		static int i;
-
-		switch(i) {
-		case 0: anim = BOTH_DEATH1; break;
-		case 1: anim = BOTH_DEATH2; break;
-		case 2:
-		default: anim = BOTH_DEATH3; break;
-		}
-
-		// for the no-blood option, we need to prevent the health
-		// from going to gib level
-		if(self->health <= GIB_HEALTH) {
-			self->health = GIB_HEALTH + 1;
-		}
-
-		self->client->ps.legsAnim = ((self->client->ps.legsAnim & ANIM_TOGGLEBIT) ^ ANIM_TOGGLEBIT) | anim;
-		self->client->ps.torsoAnim = ((self->client->ps.torsoAnim & ANIM_TOGGLEBIT) ^ ANIM_TOGGLEBIT) | anim;
-
-		G_AddEvent(self, EV_DEATH1 + i, killer);
-
-		// the body can still be gibbed
-		self->die = body_die;
-
-		// globally cycle through the different death animations
-		i = (i + 1) % 3;
-
-		if(self->s.eFlags & EF_KAMIKAZE) {
-			Kamikaze_DeathTimer(self);
-		}
-	}
-
+	G_AddEvent(self, EV_PAIN, killer);
 	trap_LinkEntity(self);
 }
 
@@ -369,69 +185,6 @@ static int CheckArmor(gentity_t *ent, int damage, int dflags) {
 	client->ps.stats[STAT_ARMOR] -= save;
 
 	return save;
-}
-
-/*
-================
-RaySphereIntersections
-================
-*/
-static int RaySphereIntersections(vec3_t origin, float radius, vec3_t point, vec3_t dir, vec3_t intersections[2]) {
-	float b, c, d, t;
-
-	// normalize dir so a = 1
-	VectorNormalize(dir);
-	b = 2 * (dir[0] * (point[0] - origin[0]) + dir[1] * (point[1] - origin[1]) + dir[2] * (point[2] - origin[2]));
-	c = (point[0] - origin[0]) * (point[0] - origin[0]) + (point[1] - origin[1]) * (point[1] - origin[1]) + (point[2] - origin[2]) * (point[2] - origin[2]) - radius * radius;
-
-	d = b * b - 4 * c;
-	if(d > 0) {
-		t = (-b + sqrt(d)) / 2;
-		VectorMA(point, t, dir, intersections[0]);
-		t = (-b - sqrt(d)) / 2;
-		VectorMA(point, t, dir, intersections[1]);
-		return 2;
-	} else if(d == 0) {
-		t = (-b) / 2;
-		VectorMA(point, t, dir, intersections[0]);
-		return 1;
-	}
-	return 0;
-}
-
-/*
-================
-G_InvulnerabilityEffect
-================
-*/
-int G_InvulnerabilityEffect(gentity_t *targ, vec3_t dir, vec3_t point, vec3_t impactpoint, vec3_t bouncedir) {
-	gentity_t *impact;
-	vec3_t intersections[2], vec;
-	int n;
-
-	if(!targ->client) return qfalse;
-
-	VectorCopy(dir, vec);
-	VectorInverse(vec);
-	// sphere model radius = 42 units
-	n = RaySphereIntersections(targ->client->ps.origin, 42, point, vec, intersections);
-	if(n > 0) {
-		impact = G_TempEntity(targ->client->ps.origin, EV_INVUL_IMPACT);
-		VectorSubtract(intersections[0], targ->client->ps.origin, vec);
-		vectoangles(vec, impact->s.angles);
-		impact->s.angles[0] += 90;
-		if(impact->s.angles[0] > 360) impact->s.angles[0] -= 360;
-		if(impactpoint) {
-			VectorCopy(intersections[0], impactpoint);
-		}
-		if(bouncedir) {
-			VectorCopy(vec, bouncedir);
-			VectorNormalize(bouncedir);
-		}
-		return qtrue;
-	} else {
-		return qfalse;
-	}
 }
 
 static qboolean G_EnterInCar(gentity_t *player, gentity_t *vehicle) {
@@ -465,7 +218,6 @@ static qboolean G_EnterInCar(gentity_t *player, gentity_t *vehicle) {
 void G_Damage(gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_t dir, vec3_t point, int damage, int dflags, int mod) {
 	gclient_t *client;
 	int take, save, asave, knockback;
-	vec3_t bouncedir, impactpoint;
 
 	if(attacker->npcType && !gameInfoNPCTypes[attacker->npcType].friendlyFire && targ->npcType == attacker->npcType) return;
 
@@ -481,37 +233,12 @@ void G_Damage(gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_t
 
 	if(targ->client && targ->client->vehicleNum) targ = G_FindEntityForEntityNum(targ->client->vehicleNum); // damage car
 
-	if(mod == WP_REGENERATOR && targ->client) {
-		if(!targ->client->ps.powerups[PW_REGEN]) {
-			targ->client->ps.powerups[PW_REGEN] = level.time - (level.time % 1000);
-		}
-		targ->client->ps.powerups[PW_REGEN] += 5 * 1000;
-	}
-
 	// the intermission has allready been qualified for, so don't
 	// allow any extra scoring
 	if(level.intermissionQueued) return;
 
-	if(targ->client && mod != MOD_JUICED) {
-		if(targ->client->invulnerabilityTime > level.time) {
-			if(dir && point) {
-				G_InvulnerabilityEffect(targ, dir, point, impactpoint, bouncedir);
-			}
-			return;
-		}
-	}
-
 	if(!inflictor) inflictor = &g_entities[ENTITYNUM_WORLD];
 	if(!attacker) attacker = &g_entities[ENTITYNUM_WORLD];
-
-	// shootable doors / buttons don't actually have any health
-	if(targ->s.eType == ET_MOVER) {
-		if(targ->use && targ->moverState == MOVER_POS1) {
-			targ->use(targ, inflictor, attacker);
-		}
-		return;
-	}
-	if(cvarInt("g_gametype") == GT_OBELISK && CheckObeliskAttack(targ, attacker)) return;
 
 	client = targ->client;
 
@@ -522,9 +249,6 @@ void G_Damage(gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_t
 	}
 
 	knockback = damage;
-
-	if(mod == WP_NUKE) knockback *= 3.00;
-	if(mod == WP_KNOCKER) knockback *= 200;
 
 	if(targ->flags & FL_NO_KNOCKBACK) knockback = 0;
 	if(dflags & DAMAGE_NO_KNOCKBACK) knockback = 0;
@@ -582,7 +306,7 @@ void G_Damage(gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_t
 
 	// check for completely getting out of the damage
 	if(!(dflags & DAMAGE_NO_PROTECTION)) {
-		if(mod != MOD_JUICED && targ != attacker && !(dflags & DAMAGE_NO_TEAM_PROTECTION) && OnSameTeam(targ, attacker)) {
+		if(targ != attacker && !(dflags & DAMAGE_NO_TEAM_PROTECTION) && OnSameTeam(targ, attacker)) {
 			if(!cvarInt("g_friendlyFire")) return;
 		}
 		if(mod == WP_PROX_LAUNCHER) {
@@ -591,13 +315,6 @@ void G_Damage(gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_t
 		}
 
 		if(targ->flags & FL_GODMODE) return; // check for godmode
-	}
-
-	// battlesuit protects from all radius damage (but takes knockback)
-	// and protects 50% against all damage
-	if(client && client->ps.powerups[PW_BATTLESUIT]) {
-		if((dflags & DAMAGE_RADIUS) || (mod == MOD_FALLING)) return;
-		damage *= 0.5;
 	}
 
 	// add to the attacker's hit counter (if the target isn't a general entity like a prox mine)

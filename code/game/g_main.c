@@ -40,6 +40,7 @@ intptr_t vmMain(int command, int arg0, int arg1, int arg2) {
 	case BOTAI_START_FRAME: return AI_Frame(arg0);
 	case GETVMCONTEXT: VMContext(&vmargs, &vmresult); return 0;
 	case VMCALL: VMCall(arg0); return 0;
+	default: G_Error("game.qvm: unknown command %i", command); break;
 	}
 
 	return -1;
@@ -181,11 +182,6 @@ static void G_InitGame(int levelTime, int randomSeed, int restart) {
 
 	// general initialization
 	G_FindTeams();
-
-	// make sure we have flags for CTF, etc
-	if(cvarInt("g_gametype") >= GT_TEAM) {
-		G_CheckTeamItems();
-	}
 
 	if(cvarInt("bot_enable")) {
 		BotAISetup(restart);
@@ -450,33 +446,10 @@ void MoveClientToIntermission(gentity_t *ent) {
 	ent->r.contents = 0;
 }
 
-/*
-==================
-FindIntermissionPoint
-
-This is also used for spectator spawns
-==================
-*/
 void FindIntermissionPoint(void) {
-	gentity_t *ent, *target;
-	vec3_t dir;
-
-	// find the intermission spot
-	ent = G_Find(NULL, FOFS(classname), "info_player_intermission");
-	if(!ent) { // the map creator forgot to put in an intermission point...
-		SelectSpawnPoint(vec3_origin, level.intermission_origin, level.intermission_angle);
-	} else {
-		VectorCopy(ent->s.origin, level.intermission_origin);
-		VectorCopy(ent->s.angles, level.intermission_angle);
-		// if it has a target, look towards it
-		if(ent->target) {
-			target = G_PickTarget(ent->target);
-			if(target) {
-				VectorSubtract(target->s.origin, level.intermission_origin, dir);
-				vectoangles(dir, level.intermission_angle);
-			}
-		}
-	}
+	VectorClear(level.intermission_origin);
+	level.intermission_origin[2] = 16384;
+	VectorClear(level.intermission_angle);
 }
 
 /*
@@ -743,7 +716,7 @@ static void CheckExitRules(void) {
 		return;
 	}
 
-	if(cvarInt("g_gametype") < GT_CTF && cvarInt("g_fraglimit")) {
+	if(cvarInt("g_gametype") <= GT_TEAM && cvarInt("g_fraglimit")) {
 		if(level.teamScores[TEAM_RED] >= cvarInt("g_fraglimit")) {
 			trap_SendServerCommand(-1, "print \"Red hit the fraglimit.\n\"");
 			LevelExit();
@@ -770,20 +743,6 @@ static void CheckExitRules(void) {
 				trap_SendServerCommand(-1, va("print \"%s" S_COLOR_WHITE " hit the fraglimit.\n\"", cl->pers.netname));
 				return;
 			}
-		}
-	}
-
-	if(cvarInt("g_gametype") >= GT_CTF && cvarInt("g_capturelimit")) {
-		if(level.teamScores[TEAM_RED] >= cvarInt("g_capturelimit")) {
-			trap_SendServerCommand(-1, "print \"Red hit the capturelimit.\n\"");
-			LevelExit();
-			return;
-		}
-
-		if(level.teamScores[TEAM_BLUE] >= cvarInt("g_capturelimit")) {
-			trap_SendServerCommand(-1, "print \"Blue hit the capturelimit.\n\"");
-			LevelExit();
-			return;
 		}
 	}
 }
@@ -900,11 +859,6 @@ static void G_RunFrame(int levelTime) {
 
 		if(ent->s.eType == ET_ITEM && ent->sandboxObject || ent->sandboxObject) {
 			Phys_Frame(ent);
-			continue;
-		}
-
-		if(ent->s.eType == ET_MOVER) {
-			G_RunMover(ent);
 			continue;
 		}
 

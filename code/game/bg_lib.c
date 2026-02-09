@@ -158,22 +158,13 @@ int strlenru(const char *string) {
 }
 
 int ifstrlenru(const char *string) {
-	int result;
-	int n;
-	int i;
-	int rucount;
-	const char *s;
+	int n, i, rucount;
 
-	s = string;
-	result = strlen(s);
-
-	n = strlen(s);
+	n = strlen(string);
 	rucount = 0;
 
 	for(i = 0; i < n; i++) {
-		if(s[i] >= -64 && s[i] <= -1) { // ебаный unicode
-			rucount += 1;
-		}
+		if(string[i] >= -64 && string[i] <= -1) rucount += 1;
 	}
 	return rucount;
 }

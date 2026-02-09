@@ -26,11 +26,6 @@ static void CG_ParseScores(void) {
 	}
 }
 
-static void CG_ParseObeliskHealth(void) {
-	cg.redObeliskHealth = atoi(CG_Argv(1));
-	cg.blueObeliskHealth = atoi(CG_Argv(2));
-}
-
 static void CG_ParseRespawnTime(void) { cg.respawnTime = atoi(CG_Argv(1)); }
 
 static void CG_ParseGameCvars(void) {
@@ -95,19 +90,9 @@ void CG_ParseServerinfo(void) {
 }
 
 void CG_SetConfigValues(void) {
-	const char *s;
-
 	cgs.scores1 = atoi(CG_ConfigString(CS_SCORES1));
 	cgs.scores2 = atoi(CG_ConfigString(CS_SCORES2));
 	cgs.levelStartTime = atoi(CG_ConfigString(CS_LEVEL_START_TIME));
-	if(cgs.gametype == GT_CTF) {
-		s = CG_ConfigString(CS_FLAGSTATUS);
-		cgs.redflag = s[0] - '0';
-		cgs.blueflag = s[1] - '0';
-	} else if(cgs.gametype == GT_1FCTF) {
-		s = CG_ConfigString(CS_FLAGSTATUS);
-		cgs.flagStatus = s[0] - '0';
-	}
 }
 
 static void CG_ConfigStringModified(void) {
@@ -141,15 +126,7 @@ static void CG_ConfigStringModified(void) {
 	} else if(num >= CS_SOUNDS && num < CS_SOUNDS + MAX_SOUNDS) {
 		if(str[0] != '*') cgs.gameSounds[num - CS_SOUNDS] = trap_S_RegisterSound(str, qfalse); // player specific sounds don't register here
 	} else if(num >= CS_PLAYERS && num < CS_PLAYERS + MAX_CLIENTS) {
-		CG_NewClientInfo(num - CS_PLAYERS);
-	} else if(num == CS_FLAGSTATUS) {
-		if(cgs.gametype == GT_CTF) {
-			// format is rb where its red/blue, 0 is at base, 1 is taken, 2 is dropped
-			cgs.redflag = str[0] - '0';
-			cgs.blueflag = str[1] - '0';
-		} else if(cgs.gametype == GT_1FCTF) {
-			cgs.flagStatus = str[0] - '0';
-		}
+		CG_UpdateClientInfo(num - CS_PLAYERS);
 	}
 }
 
@@ -182,16 +159,6 @@ static void CG_ServerCommand(void) {
 	cmd = CG_Argv(0);
 
 	if(!cmd[0]) return;
-
-	if(!strcmp(cmd, "cp")) {
-		CG_CenterPrint(CG_Argv(1), SCREEN_HEIGHT * 0.30, BIGCHAR_WIDTH);
-		return;
-	}
-
-	if(!strcmp(cmd, "lp")) {
-		CG_CenterPrint(CG_Argv(1), SCREEN_HEIGHT * 0.85, BASEFONT_INDENT);
-		return;
-	}
 
 	if(!strcmp(cmd, "clcmd")) {
 		trap_Cmd(EXEC_INSERT, CG_Argv(1));
@@ -241,11 +208,6 @@ static void CG_ServerCommand(void) {
 
 	if(!strcmp(cmd, "map_restart")) {
 		CG_MapRestart();
-		return;
-	}
-
-	if(!strcmp(cmd, "oh")) {
-		CG_ParseObeliskHealth();
 		return;
 	}
 

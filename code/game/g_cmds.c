@@ -98,13 +98,6 @@ void G_SendSpawnSwepWeapons(gentity_t *ent) {
 
 void RespawnTimeMessage(gentity_t *ent, int time) { trap_SendServerCommand(ent - g_entities, va("respawn %i", time)); }
 
-void ObeliskHealthMessage(void) {
-	if(level.MustSendObeliskHealth) {
-		trap_SendServerCommand(-1, va("oh %i %i", level.healthRedObelisk, level.healthBlueObelisk));
-		level.MustSendObeliskHealth = qfalse;
-	}
-}
-
 void Cmd_Score_f(gentity_t *ent) { DeathmatchScoreboardMessage(ent); }
 
 static qboolean CheatsOk(gentity_t *ent) {
@@ -154,45 +147,21 @@ static void Cmd_Give_f(gentity_t *ent) {
 
 	name = ConcatArgs(1);
 
-	if Q_strequal(name, "all")
-		give_all = qtrue;
-	else
-		give_all = qfalse;
+	if(Q_strequal(name, "all")) give_all = qtrue;
+	else give_all = qfalse;
 
-	if(give_all || Q_strequal(name, "health")) {
-		ent->health = ent->client->ps.stats[STAT_MAX_HEALTH];
-		if(!give_all) return;
-	}
-
-	if(give_all || Q_strequal(name, "weapons")) {
+	if(give_all) {
 		for(i = 1; i < WEAPONS_NUM; i++) {
 			ent->swep_list[i] = WS_HAVE;
 			ent->swep_ammo[i] = 9999;
 		}
 		SetUnlimitedWeapons(ent);
-		if(!give_all) return;
-	}
-
-	if(give_all || Q_strequal(name, "ammo")) {
-		for(i = 1; i < WEAPONS_NUM; i++) {
-			ent->swep_ammo[i] = 9999;
-		}
-		SetUnlimitedWeapons(ent);
-		if(!give_all) return;
-	}
-
-	if(give_all || Q_strequal(name, "armor")) {
-		ent->client->ps.stats[STAT_ARMOR] = 200;
-
-		if(!give_all) return;
 	}
 
 	// spawn a specific item right on the player
 	if(!give_all) {
 		it = BG_FindItem(name);
-		if(!it) {
-			return;
-		}
+		if(!it) return;
 
 		it_ent = G_Spawn();
 		VectorCopy(ent->r.currentOrigin, it_ent->s.origin);
@@ -201,9 +170,7 @@ static void Cmd_Give_f(gentity_t *ent) {
 		FinishSpawningItem(it_ent);
 		memset(&trace, 0, sizeof(trace));
 		Touch_Item(it_ent, ent, &trace);
-		if(it_ent->inuse) {
-			G_FreeEntity(it_ent);
-		}
+		if(it_ent->inuse) G_FreeEntity(it_ent);
 	}
 }
 
@@ -404,7 +371,6 @@ static void G_Say(gentity_t *ent, gentity_t *target, int mode, const char *chatT
 	char name[64];
 	// don't let text be too long for malicious reasons
 	char text[MAX_SAY_TEXT];
-	char location[64];
 
 	switch(mode) {
 	default:
@@ -413,17 +379,11 @@ static void G_Say(gentity_t *ent, gentity_t *target, int mode, const char *chatT
 		color = COLOR_GREEN;
 		break;
 	case SAY_TEAM:
-		if(Team_GetLocationMsg(ent, location, sizeof(location)))
-			Com_sprintf(name, sizeof(name), EC "(%s%c%c" EC ") (%s)" EC ": ", ent->client->pers.netname, Q_COLOR_ESCAPE, COLOR_WHITE, location);
-		else
-			Com_sprintf(name, sizeof(name), EC "(%s%c%c" EC ")" EC ": ", ent->client->pers.netname, Q_COLOR_ESCAPE, COLOR_WHITE);
+		Com_sprintf(name, sizeof(name), EC "(%s%c%c" EC ")" EC ": ", ent->client->pers.netname, Q_COLOR_ESCAPE, COLOR_WHITE);
 		color = COLOR_CYAN;
 		break;
 	case SAY_TELL:
-		if(target && target->client->sess.sessionTeam == ent->client->sess.sessionTeam && Team_GetLocationMsg(ent, location, sizeof(location)))
-			Com_sprintf(name, sizeof(name), EC "[%s%c%c" EC "] (%s)" EC ": ", ent->client->pers.netname, Q_COLOR_ESCAPE, COLOR_WHITE, location);
-		else
-			Com_sprintf(name, sizeof(name), EC "[%s%c%c" EC "]" EC ": ", ent->client->pers.netname, Q_COLOR_ESCAPE, COLOR_WHITE);
+		Com_sprintf(name, sizeof(name), EC "[%s%c%c" EC "]" EC ": ", ent->client->pers.netname, Q_COLOR_ESCAPE, COLOR_WHITE);
 		color = COLOR_MAGENTA;
 		break;
 	}
@@ -491,6 +451,17 @@ static void Cmd_Tell_f(gentity_t *ent) {
 static void Cmd_RunSay_f(gentity_t *ent) { Cmd_Say_f(ent, SAY_ALL, qfalse); }
 
 static void Cmd_RunSayTeam_f(gentity_t *ent) { Cmd_Say_f(ent, SAY_TEAM, qfalse); }
+
+static void Cmd_Weapon_f(gentity_t *ent) {
+	char str[64];
+	int id;
+	
+	trap_Argv(1, str, sizeof(str));
+	id = atoi(str);
+
+	if(id >= 0 && id < WEAPONS_NUM) ent->client->ps.weapon = id;
+	G_Printf("Selected weapon: %i\n", id);
+}
 
 static void Cmd_SpawnList_Item_f(gentity_t *ent) {
 	vec3_t end, start, forward, up, right;
@@ -785,6 +756,7 @@ commands_t cmds[] = {
     {"activate", CMD_LIVING, Cmd_ActivateTarget_f},
 
     // internal
+    {"wp", CMD_LIVING, Cmd_Weapon_f},
     {"sl", CMD_LIVING, Cmd_SpawnList_Item_f},
     {"tm", CMD_LIVING, Cmd_Modify_Prop_f},
     {"altfire_physgun", CMD_LIVING, Cmd_Altfire_Physgun_f},

@@ -32,3 +32,10 @@ void UI_Menu(void) {
     JS_MenuInit();
 	trap_Key_SetCatcher(KEYCATCH_UI);
 }
+
+void UI_HotReloadJS(void) {
+    trap_Cmd(EXEC_NOW, "js.restart \n");
+	memset(&uis.items, 0, sizeof(menuelement_s)*MAX_MENUITEMS);
+    JS_MenuInit();
+	trap_Key_SetCatcher(KEYCATCH_UI);
+}

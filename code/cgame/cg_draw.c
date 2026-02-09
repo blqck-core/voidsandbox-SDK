@@ -82,7 +82,7 @@ void CG_DrawHead(float x, float y, float w, float h, int clientNum) {
 	clientInfo_t *ci;
 
 	ci = &cgs.clientinfo[clientNum];
-	CG_DrawPic(x, y, w, h, ci->modelIcon);
+	//CG_DrawPic(x, y, w, h, ci->modelIcon);
 }
 
 static void SplitStringBySpace(const char *str, char result[MAX_ENTITYINFO][64]) {
@@ -122,24 +122,6 @@ static void CG_DrawWeaponSelect(void) {
 
 	originalX = (530 + cgui.wideoffset) - ((WICON_SIDE + WICON_SPACE) * WICONS_SIDES) - ((WICON_SELECT / 2) + WICON_SPACE) - 1.5;
 	originalY = 440;
-
-	if(ST_AnimValue(&weaponSelectIn, cg.time)) {
-		originalY += ST_AnimValue(&weaponSelectIn, cg.time) * 40;
-	}
-
-	if(cg.time - anim_weaponSelect >= 400 + 2000 && anim_weaponSelect) {
-		if(!ST_AnimValue(&weaponSelectOut, cg.time)) {
-			anim_weaponSelect = 0;
-			ST_AnimStart(&weaponSelectOut, cg.time, 600);
-		}
-	}
-
-	if(ST_AnimValue(&weaponSelectOut, cg.time)) {
-		originalY += 40;
-		originalY -= ST_AnimValue(&weaponSelectOut, cg.time) * 40;
-	} else {
-		if(!anim_weaponSelect) originalY += 40;
-	}
 
 	y = originalY + (WICON_SELECT * 0.25);
 	x = originalX + (WICON_SELECT / 2) + WICON_SPACE;
@@ -313,22 +295,6 @@ static void CG_DrawStatusBar(void) {
 	if(cg.showScores || !cvarInt("cg_draw2D")) return;
 	if(cent->currentState.weapon == WP_TOOLGUN) CG_DrawToolgun();
 
-	if(cg.snap->ps.stats[STAT_HOLDABLE_ITEM] || cg.snap->ps.stats[STAT_PERSISTANT_POWERUP] || cg.predictedPlayerState.powerups[PW_REDFLAG] || cg.predictedPlayerState.powerups[PW_BLUEFLAG] || cg.predictedPlayerState.powerups[PW_NEUTRALFLAG]) ST_DrawRoundedRect(10 - cgui.wideoffset, 420 - 2, (ICON_SIZE + 4) * 3, ICON_SIZE + 4, 4, color_dim);
-
-	value = cg.snap->ps.stats[STAT_HOLDABLE_ITEM];
-	if(value) CG_DrawPic((10 - cgui.wideoffset) + 4, 420, ICON_SIZE, ICON_SIZE, cg_items[value].icon);
-
-	value = cg.snap->ps.stats[STAT_PERSISTANT_POWERUP];
-	if(value) CG_DrawPic(10 - cgui.wideoffset + (ICON_SIZE + 6), 420, ICON_SIZE, ICON_SIZE, cg_items[value].icon);
-
-	if(cg.predictedPlayerState.powerups[PW_REDFLAG]) {
-		CG_DrawPic(10 - cgui.wideoffset + ((ICON_SIZE + 4) * 2), 420, ICON_SIZE, ICON_SIZE, cg_items[ITEM_INDEX(BG_FindItemForPowerup(PW_REDFLAG))].icon);
-	} else if(cg.predictedPlayerState.powerups[PW_BLUEFLAG]) {
-		CG_DrawPic(10 - cgui.wideoffset + ((ICON_SIZE + 4) * 2), 420, ICON_SIZE, ICON_SIZE, cg_items[ITEM_INDEX(BG_FindItemForPowerup(PW_BLUEFLAG))].icon);
-	} else if(cg.predictedPlayerState.powerups[PW_NEUTRALFLAG]) {
-		CG_DrawPic(10 - cgui.wideoffset + ((ICON_SIZE + 4) * 2), 420, ICON_SIZE, ICON_SIZE, cg_items[ITEM_INDEX(BG_FindItemForPowerup(PW_NEUTRALFLAG))].icon);
-	}
-
 	if(!ps->stats[STAT_VEHICLE]) {
 		if(cent->currentState.weapon) { // VEHICLE-SYSTEM: vehicle's speedmeter for all
 			value = ps->stats[STAT_AMMO];
@@ -432,12 +398,6 @@ static void CG_DrawCounters(void) {
 		CG_DrawCounterElement(640 + cgui.wideoffset - 84, y, va("%i:%i%i", mins, tens, seconds), "Time");
 		y += 20;
 	}
-
-	// Skulls!
-	if(cgs.gametype == GT_HARVESTER) {
-		value = cg.snap->ps.generic1;
-		if(value > 0) CG_DrawCounterElement(640 + cgui.wideoffset - 84, y, va("%i", value), "Skulls");
-	}
 }
 
 #define SCORES_WIDTH 32
@@ -446,7 +406,6 @@ static void CG_DrawScores(void) {
 	const char *s;
 	int s1, s2, score;
 	int x;
-	int v;
 	vec4_t colorb, colorr, colorg, colorgr;
 	float y = 0;
 
@@ -481,50 +440,15 @@ static void CG_DrawScores(void) {
 		ST_DrawRoundedRect(x, y, SCORES_WIDTH, SCORES_HEIGHT, 0, colorb);
 		ST_DrawString(x + 16, y + 3, s, UI_CENTER, color_white, 1.20);
 
-		// blue flag
-		if(cgs.gametype == GT_CTF) {
-			if(BG_FindItemForPowerup(PW_BLUEFLAG)) {
-				if(cgs.blueflag >= 0 && cgs.blueflag <= 2) {
-					CG_DrawPic(x + SCORES_WIDTH, y, SCORES_WIDTH, SCORES_HEIGHT, cgs.media.blueFlagShader[cgs.blueflag]);
-				}
-			}
-		}
-
-		if(cgs.gametype == GT_OBELISK) {
-			s = va("%i%%", cg.blueObeliskHealth);
-			ST_DrawRoundedRect(x + SCORES_WIDTH, y, SCORES_WIDTH, SCORES_HEIGHT - 4, 0, color_dim);
-			ST_DrawString(x + (SCORES_WIDTH * 1.50), y + 2, s, UI_CENTER, color_white, 1.20);
-		}
-
 		// red score
 		s = va("%i", s1);
 		x = 320 - SCORES_WIDTH;
 		ST_DrawRoundedRect(x, y, SCORES_WIDTH, SCORES_HEIGHT, 0, colorr);
 		ST_DrawString(x + 16, y + 3, s, UI_CENTER, color_white, 1.20);
 
-		// red flag
-		if(cgs.gametype == GT_CTF) {
-			if(BG_FindItemForPowerup(PW_REDFLAG)) {
-				if(cgs.redflag >= 0 && cgs.redflag <= 2) {
-					CG_DrawPic(x - SCORES_WIDTH, y, SCORES_WIDTH, SCORES_HEIGHT, cgs.media.redFlagShader[cgs.redflag]);
-				}
-			}
-		}
-
-		if(cgs.gametype == GT_OBELISK) {
-			s = va("%i%%", cg.redObeliskHealth);
-			ST_DrawRoundedRect(x - SCORES_WIDTH, y, SCORES_WIDTH, SCORES_HEIGHT - 4, 0, color_dim);
-			ST_DrawString(x - (SCORES_WIDTH * 0.50), y + 2, s, UI_CENTER, color_white, 1.20);
-		}
-
 		// limit
-		if(cgs.gametype >= GT_CTF) {
-			v = cgs.capturelimit;
-		} else {
-			v = cgs.fraglimit;
-		}
-		if(v) {
-			s = va("%i", v);
+		if(cgs.fraglimit) {
+			s = va("%i", cgs.fraglimit);
 			x = 320 - 32;
 			ST_DrawRoundedRect(x, y + SCORES_HEIGHT, SCORES_WIDTH * 2, SCORES_HEIGHT, 0, color_dim);
 			ST_DrawString(x + SCORES_WIDTH, y + 23, s, UI_CENTER, color_white, 1.20);
@@ -535,9 +459,7 @@ static void CG_DrawScores(void) {
 		score = cg.snap->ps.persistant[PERS_SCORE];
 
 		// always show your score in the second box if not in first place
-		if(s1 != score) {
-			s2 = score;
-		}
+		if(s1 != score) s2 = score;
 
 		// player place
 		if(s2 != SCORE_NOT_PRESENT) {
@@ -569,30 +491,6 @@ static void CG_DrawScores(void) {
 			ST_DrawRoundedRect(x, y + SCORES_HEIGHT, 64, 20, 0, color_dim);
 			ST_DrawString(x + SCORES_WIDTH, y + 23, s, UI_CENTER, color_white, 1.20);
 		}
-	}
-}
-
-static void CG_DrawPowerups(void) {
-	playerState_t *ps = &cg.snap->ps;
-	item_t *item;
-	int i, t;
-	float y = 150;
-
-	if(ps->stats[STAT_HEALTH] <= 0) return;
-
-	for(i = 0; i < MAX_POWERUPS; i++) {
-		if(!ps->powerups[i]) continue;
-
-		t = ps->powerups[i] - cg.time;
-		if(t < 0 || t > 99999000) continue;
-
-		item = BG_FindItemForPowerup(i);
-		if(!item || item->giType == IT_RUNE) continue;
-
-		y += ICON_SIZE + 2;
-		ST_DrawRoundedRect(2 - cgui.wideoffset, y, 64, ICON_SIZE, 4, color_dim);
-		CG_DrawPic(3 - cgui.wideoffset, y, ICON_SIZE, ICON_SIZE, trap_R_RegisterShader(item->icon));
-		ST_DrawString((4 - cgui.wideoffset) + ICON_SIZE, y + 3, va("%i", t / 1000), UI_LEFT, color_white, 1.25);
 	}
 }
 
@@ -667,89 +565,6 @@ void CG_AddToGenericConsole(const char *str, console_t *console) {
 
 	console->msgTimes[console->insertIdx % CONSOLE_MAXHEIGHT] = cg.time;
 	console->insertIdx++;
-}
-
-void CG_CenterPrint(const char *str, int y, int charWidth) {
-	char *s;
-
-	Q_StringCopy(cg.centerPrint, str, sizeof(cg.centerPrint));
-
-	cg.centerPrintTime = cg.time;
-	cg.centerPrintY = y;
-	cg.centerPrintCharWidth = charWidth;
-
-	// count the number of lines for centering
-	cg.centerPrintLines = 1;
-	s = cg.centerPrint;
-	while(*s) {
-		if(*s == '\n') cg.centerPrintLines++;
-		s++;
-	}
-}
-
-static void CG_DrawCenterString(void) {
-	char *start;
-	int l, y;
-	float *color;
-
-	if(!cg.centerPrintTime) return;
-
-	color = CG_FadeColor(cg.centerPrintTime, 1000 * 5);
-	if(!color) return;
-
-	trap_R_SetColor(color);
-
-	start = cg.centerPrint;
-	y = cg.centerPrintY - cg.centerPrintLines * BIGCHAR_HEIGHT / 2;
-
-	while(1) {
-		char linebuffer[1024];
-
-		for(l = 0; l < 50; l++) {
-			if(!start[l] || start[l] == '\n') break;
-			linebuffer[l] = start[l];
-		}
-		linebuffer[l] = 0;
-
-		ST_DrawString(SCREEN_WIDTH / 2, y, linebuffer, UI_CENTER | UI_DROPSHADOW, color_white, 1.25);
-
-		y += cg.centerPrintCharWidth * 1.5;
-		while(*start && (*start != '\n')) {
-			start++;
-		}
-		if(!*start) break;
-		start++;
-	}
-
-	trap_R_SetColor(NULL);
-}
-
-static void CG_Draw1FCTF(void) {
-	if(cgs.gametype != GT_1FCTF) return;
-
-	switch(cgs.flagStatus) {
-	case 2: CG_DrawPic(320 - (ICON_SIZE * 0.75), 50, ICON_SIZE * 1.50, ICON_SIZE * 1.50, cg_items[ITEM_INDEX(BG_FindItemForPowerup(PW_REDFLAG))].icon); break;
-	case 3: CG_DrawPic(320 - (ICON_SIZE * 0.75), 50, ICON_SIZE * 1.50, ICON_SIZE * 1.50, cg_items[ITEM_INDEX(BG_FindItemForPowerup(PW_BLUEFLAG))].icon); break;
-	case 4: CG_DrawPic(320 - (ICON_SIZE * 0.75), 50, ICON_SIZE * 1.50, ICON_SIZE * 1.50, cg_items[ITEM_INDEX(BG_FindItemForPowerup(PW_NEUTRALFLAG))].icon); break;
-	default: return;
-	};
-}
-
-static void CG_ScanForCrosshairEntity(void) {
-	trace_t trace;
-	vec3_t start, end;
-	int content;
-
-	VectorCopy(cg.refdef.vieworg, start);
-	VectorMA(start, 131072, cg.refdef.viewaxis[0], end);
-
-	CG_Trace(&trace, start, vec3_origin, vec3_origin, end, cg.snap->ps.clientNum, CONTENTS_SOLID | CONTENTS_BODY);
-	if(trace.entityNum >= MAX_CLIENTS) return;
-
-	content = trap_CM_PointContents(trace.endpos, 0);
-	if(content & CONTENTS_FOG) return;
-
-	if(cg_entities[trace.entityNum].currentState.powerups & (1 << PW_INVIS)) return;
 }
 
 static void CG_DrawCrosshair(void) {
@@ -841,9 +656,6 @@ static qhandle_t CG_FindModImage(int mod) {
 	if(mod == MOD_TELEFRAG) return trap_R_RegisterShaderNoMip("icons/teleporter");
 	if(mod == MOD_FALLING) return trap_R_RegisterShaderNoMip("icons/d_fall");
 	if(mod == MOD_SUICIDE) return trap_R_RegisterShaderNoMip("icons/d_death");
-	if(mod == MOD_TRIGGER_HURT) return trap_R_RegisterShaderNoMip("icons/d_death");
-	if(mod == MOD_KAMIKAZE) return trap_R_RegisterShaderNoMip("icons/kamikaze");
-	if(mod == MOD_JUICED) return trap_R_RegisterShaderNoMip("icons/d_death");
 	if(mod == MOD_CAR) return trap_R_RegisterShaderNoMip("icons/d_car");
 	if(mod == MOD_CAREXPLODE) return trap_R_RegisterShaderNoMip("icons/d_car");
 	if(mod == MOD_PROP) return trap_R_RegisterShaderNoMip("icons/iconw_propgun");
@@ -971,16 +783,6 @@ static void CG_DrawDeathMessage(void) {
 	}
 }
 
-static void CG_DrawPostProcess(void) {
-	if(strlen(cvarString("cg_postprocess"))) {
-		cgs.media.postProcess = trap_R_RegisterShaderNoMip(cvarString("cg_postprocess"));
-	} else {
-		cgs.media.postProcess = 0;
-	}
-
-	if(strlen(cvarString("cg_postprocess")) && cgs.media.postProcess) CG_DrawPic(0 - (cgui.wideoffset + 1), 0, SCREEN_WIDTH + (cgui.wideoffset * 2) + 2, SCREEN_HEIGHT, cgs.media.postProcess);
-}
-
 static void CG_Draw2D(void) {
 	int catcher = trap_Key_GetCatcher();
 
@@ -995,11 +797,8 @@ static void CG_Draw2D(void) {
 	CG_DrawCrosshair();
 	CG_DrawCounters();
 	if(!(catcher & KEYCATCH_UI)) {
-		CG_ScanForCrosshairEntity();
-		CG_DrawPowerups();
 		CG_DrawFollow();
 		CG_Notify();
-		if(!cg.scoreBoardShowing) CG_Draw1FCTF();
 		CG_NSErrors();
 	}
 
@@ -1011,7 +810,6 @@ static void CG_Draw2D(void) {
 	if(cg.snap->ps.pm_type != PM_INTERMISSION && cg.snap->ps.pm_type != PM_DEAD && cg.snap->ps.pm_type != PM_SPECTATOR) CG_DrawStatusBar();
 
 	if(!(catcher & KEYCATCH_UI)) {
-		if(!cg.scoreBoardShowing) CG_DrawCenterString();
 		cg.scoreBoardShowing = CG_DrawScoreboard();
 		if(cgs.gametype != GT_SANDBOX) CG_DrawScores();
 		if(cg.snap->ps.pm_type == PM_DEAD) CG_DrawDeathMessage();
@@ -1026,10 +824,8 @@ void CG_DrawActive(void) {
 
 	if(!cg.weaponSelect) cg.weaponSelect = cg.snap->ps.weapon;
 
-	CG_ReloadPlayers();
 	trap_R_RenderScene(&cg.refdef);
 	CG_Draw3DStringQueue();
-	CG_DrawPostProcess();
 	CG_Draw2D();
 
 	if(cg.renderingThirdPerson) CG_DrawCrosshair3D();

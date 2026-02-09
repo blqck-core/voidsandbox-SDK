@@ -42,6 +42,8 @@ typedef enum {
 	VM_DRAWRECTANGLE = 3,
 	VM_DRAWSHADER = 4,
 	VM_CREATEBUTTON = 5,
+	VM_CREATECHECKBOX = 6,
+	VM_CREATESLIDER = 7,
 } vmcall_t;
 
 typedef enum { JS_TYPE_NONE, JS_TYPE_INT, JS_TYPE_FLOAT, JS_TYPE_STRING } js_type_t;
@@ -75,6 +77,10 @@ void JS_MenuCallback(int id);
 // JS Definitions
 #define JSCOLOR_DISABLED 101
 #define JSCOLOR_SELECTED 102
+#define JSCOLOR_ENABLED 103
+#define JSCOLOR_TIP 104
+#define JSCOLOR_TIPSHADOW 105
+#define JSCOLOR_TIPTEXT 106
 
 extern js_args_t vmargs;
 extern js_result_t vmresult;

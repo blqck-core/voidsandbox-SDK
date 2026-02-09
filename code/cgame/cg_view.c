@@ -15,9 +15,6 @@ static void CG_CalcVrect(void) {
 	cg.refdef.y = (glconfig.vidHeight - cg.refdef.height) / 2;
 }
 
-extern vec3_t headpos;
-extern vec3_t headang;
-
 static void CG_OffsetThirdPersonView(void) {
 	vec3_t forward, right, up;
 	vec3_t view;
@@ -316,24 +313,6 @@ static void CG_CalcViewValues(void) {
 		CG_OffsetFirstPersonView();
 	}
 
-	// leilei - View-from-the-model-eyes feature, aka "fullbody awareness" lol
-	if(cg.renderingEyesPerson && !cg.renderingThirdPerson) {
-		vec3_t forward, up;
-		cg.refdefViewAngles[ROLL] = headang[ROLL];
-		cg.refdefViewAngles[PITCH] = headang[PITCH];
-		cg.refdefViewAngles[YAW] = headang[YAW];
-
-		AngleVectors(headang, forward, NULL, up);
-		if(cg.renderingEyesPerson) {
-			VectorMA(headpos, cvarFloat("cg_cameraEyes_Fwd"), forward, headpos);
-			VectorMA(headpos, cvarFloat("cg_cameraEyes_Up"), up, headpos);
-		}
-
-		cg.refdef.vieworg[0] = ps->origin[0] + headpos[0];
-		cg.refdef.vieworg[1] = ps->origin[1] + headpos[1];
-		cg.refdef.vieworg[2] = ps->origin[2] + headpos[2];
-	}
-
 	// position eye reletive to origin
 	AnglesToAxis(cg.refdefViewAngles, cg.refdef.viewaxis);
 
@@ -380,7 +359,7 @@ void CG_DrawActiveFrame(int serverTime, qboolean demoPlayback) {
 		return;
 	}
 
-	trap_SetUserCmdValue(cg.weaponSelect, cg.zoomSensitivity);
+	trap_SetUserCmdValue(cg.zoomSensitivity);
 	cg.clientFrame++;
 	CG_PredictPlayerState();
 

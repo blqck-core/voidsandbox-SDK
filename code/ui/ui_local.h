@@ -34,11 +34,11 @@
 #define MTYPE_NULL 0
 
 #define MTYPE_BUTTON 1
-#define MTYPE_SLIDER 2
-#define MTYPE_ACTION 3
-#define MTYPE_SPINCONTROL 4
-#define MTYPE_FIELD 5
-#define MTYPE_RADIOBUTTON 6
+#define MTYPE_CHECKBOX 2
+#define MTYPE_SLIDER 3
+#define MTYPE_ACTION 4
+#define MTYPE_SPINCONTROL 5
+#define MTYPE_FIELD 6
 #define MTYPE_BITMAP 7
 #define MTYPE_SCROLLLIST 8
 #define MTYPE_TEXT 9
@@ -117,9 +117,12 @@ typedef struct {
 
 #define UI_STRINGLENGTH 128
 #define UI_ACTIONLENGTH 256
+
+#define EMODE_NONE 0
+#define EMODE_INT 1
+#define EMODE_FLOAT 2
 typedef struct {
 	menucommon_s generic;
-	char *string;
 	
 	int type;
 	int id;
@@ -132,10 +135,15 @@ typedef struct {
 	int margin;
 	char action[UI_ACTIONLENGTH];
 	
+	float value;
 	
+	float min, max;
+	int mode;
+	
+	
+	char *string;
 	void (*callback)(void *self, int event);
 	
-	float autowh;
 	int curColortext, curColorbg;
 	
 	float *color;
@@ -173,91 +181,6 @@ extern sfxHandle_t menu_move_sound;
 extern sfxHandle_t menu_out_sound;
 extern sfxHandle_t menu_buzz_sound;
 extern sfxHandle_t menu_null_sound;
-
-typedef struct {
-	int oldFrame;
-	int oldFrameTime; // time when ->oldFrame was exactly on
-
-	int frame;
-	int frameTime; // time when ->frame will be exactly on
-
-	float backlerp;
-
-	float yawAngle;
-	qboolean yawing;
-	float pitchAngle;
-	qboolean pitching;
-
-	int animationNumber; // may include ANIM_TOGGLEBIT
-	animation_t *animation;
-	int animationTime; // time when the first frame of the animation will be exact
-} lerpFrame_t;
-
-typedef struct {
-	// model info
-	qhandle_t legsModel;
-	qhandle_t legsSkin;
-	qhandle_t legsShader;
-	lerpFrame_t legs;
-
-	qhandle_t torsoModel;
-	qhandle_t torsoSkin;
-	qhandle_t torsoShader;
-	lerpFrame_t torso;
-
-	qhandle_t headModel;
-	qhandle_t headSkin;
-	qhandle_t headShader;
-
-	animation_t animations[MAX_ANIMATIONS];
-
-	// currently in use drawing parms
-	vec3_t viewAngles;
-	vec3_t moveAngles;
-	int legsAnim;
-	int torsoAnim;
-
-	qboolean fixedlegs;  // true if legs yaw is always the same as torso yaw
-	qboolean fixedtorso; // true if torso never changes yaw
-
-	qboolean newModel;
-
-	int oldFrame;
-} playerInfo_t;
-
-#define MODELNAME_BUFFER MAX_QPATH
-
-typedef struct {
-	playerInfo_t player;
-	char modelskin[MODELNAME_BUFFER];
-	char headskin[MODELNAME_BUFFER];
-	char legsskin[MODELNAME_BUFFER];
-	char team_modelskin[MODELNAME_BUFFER];
-	char team_headskin[MODELNAME_BUFFER];
-	char team_legsskin[MODELNAME_BUFFER];
-
-	menuelement_s bitmap;
-
-	int anim;
-	int playerLegs;
-	int playerTorso;
-	int playerWeapon;
-	vec3_t viewangles;
-	vec3_t moveangles;
-
-	int cursorx;
-	int cursory;
-	qboolean bDoingIdleAnim;
-
-	qboolean bUnknownModel;
-	qboolean bUnknownHeadModel;
-	qboolean bUnknownLegsModel;
-	qboolean bForceUpdate;
-} modelAnim_t;
-
-enum { DRAWMODEL_DM, DRAWMODEL_TEAM };
-
-extern qboolean drawTeamModel;
 
 typedef struct {
 	int frametime;
@@ -316,6 +239,7 @@ void UI_CreateCvars(void);
 // ui_menu.c
 void MenuDraw(void);
 void UI_Menu(void);
+void UI_HotReloadJS(void);
 
 // ui_newgame.c
 void UI_NewGame(void);
@@ -325,12 +249,6 @@ void UI_Options(void);
 
 // ui_playermodel.c
 void UI_PlayerModelMenu(void);
-
-// ui_players.c
-void GUI_PlayerInfo_InitModel(modelAnim_t *m);
-void GUI_PlayerInfo_DrawTeamModel(modelAnim_t *m, qboolean teamModel);
-const char *GUI_ModelName(const char *modelname);
-void GUI_PlayerInfo_AnimateModel(modelAnim_t *m);
 
 // ui_qmenu.c
 qboolean Menu_CursorOnItem(int id);
@@ -347,9 +265,9 @@ void UI_FillListOfItems(menuelement_s *e, char *names, int namesSize, char **con
 void UI_FillListPlayers(menuelement_s *e, char **configlist, char *names, int namesSize);
 int UI_ListPlayerCount(void);
 void UI_SetHitbox(int id, float x, float y, float w, float h);
-int UI_CButton(int id, float x, float y, float w, float h, char *text, int style, float size, int colortext, int colorbg, int corner, int margin, char *action, void (*callback)(void *self, int event));
-void UI_CSlider(menuelement_s *e, float x, float y, char *text, char *var, float min, float max, float mod, void (*callback)(void *self, int event), int callid);
-void UI_CRadioButton(menuelement_s *e, float x, float y, char *text, char *var, int mod, void (*callback)(void *self, int event), int callid);
+int UI_CButton(int id, float x, float y, float w, float h, char *text, int style, float size, int colortext, int colorbg, int corner, int margin, char *action);
+int UI_CCheckbox(int id, float x, float y, float w, float h, char *text, float size, int colortext, int colorbg, int corner, int margin, char *action);
+int UI_CSlider(int id, float x, float y, float w, float h, char *text, float size, int colortext, int colorbg, int corner, int margin, char *action, float min, float max, int mode);
 void UI_CSpinControl(menuelement_s *e, float x, float y, char *text, const char **list, char *var, void (*callback)(void *self, int event), int callid);
 void UI_CList(menuelement_s *e, float x, float y, float size, int h, int w, float pad_x, float pad_y, int style, qboolean drawText, int corner, float *color, void (*callback)(void *self, int event), int callid);
 void UI_CField(menuelement_s *e, float x, float y, char *text, int w, int maxchars, float *color, char *var, void (*callback)(void *self, int event), int callid);
@@ -388,12 +306,7 @@ typedef struct {
 extern uimenu_t ui;
 
 // syscalls
-void trap_Key_KeynumToStringBuf(int keynum, char *buf, int buflen);
-void trap_Key_GetBindingBuf(int keynum, char *buf, int buflen);
 void trap_Key_SetBinding(int keynum, const char *binding);
-qboolean trap_Key_IsDown(int keynum);
-qboolean trap_Key_GetOverstrikeMode(void);
-void trap_Key_SetOverstrikeMode(qboolean state);
 void trap_Key_ClearStates(void);
 void trap_Key_SetCatcher(int catcher);
 void trap_GetClipboardData(char *buf, int bufsize);

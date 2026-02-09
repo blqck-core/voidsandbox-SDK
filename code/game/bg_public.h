@@ -5,6 +5,10 @@
 #ifndef __BG_PUBLIC_H
 #define __BG_PUBLIC_H
 
+#define MAX_PLAYER_HEALTH 100
+#define MAX_PLAYER_ARMOR 100
+#define MAX_PLAYER_AMMO 9999
+
 #define GIB_HEALTH -66
 #define MAX_ITEMS 256
 #define RANK_TIED_FLAG 0x4000
@@ -99,10 +103,6 @@ typedef enum {
 	GT_FFA,
 	// TEAM GAMEMODES
 	GT_TEAM,
-	GT_CTF,
-	GT_1FCTF,
-	GT_OBELISK,
-	GT_HARVESTER,
 
 	GT_MAX_GAME_TYPE
 } gametype_t;
@@ -118,10 +118,6 @@ typedef enum {
 	IT_AMMO,
 	IT_ARMOR,
 	IT_HEALTH,
-	IT_POWERUP,
-	IT_HOLDABLE,
-	IT_RUNE,
-	IT_TEAM,
 } itemType_t;
 
 typedef struct item_s {
@@ -162,11 +158,8 @@ typedef enum {
 #define PMF_TIME_KNOCKBACK 32 // pm_time is an air-accelerate only time
 #define PMF_TIME_WATERJUMP 64 // pm_time is waterjump
 #define PMF_RESPAWNED 128     // clear after attack and jump buttons come up
-#define PMF_USE_ITEM_HELD 256
-#define PMF_GRAPPLE_PULL 512 // pull towards grapple location
-#define PMF_FOLLOW 1024      // spectate following another player
-#define PMF_SCOREBOARD 2048  // spectate as a scoreboard
-#define PMF_INVULEXPAND 4096 // invulnerability sphere set to full size
+#define PMF_FOLLOW 256      // spectate following another player
+#define PMF_SCOREBOARD 512  // spectate as a scoreboard
 #define PMF_ALL_TIMES (PMF_TIME_WATERJUMP | PMF_TIME_LAND | PMF_TIME_KNOCKBACK)
 
 #define MAXTOUCH 32
@@ -203,9 +196,6 @@ typedef enum {
 	STAT_HEALTH,
 	STAT_ARMOR,
 	STAT_AMMO,
-	STAT_MAX_HEALTH,
-	STAT_HOLDABLE_ITEM,
-	STAT_PERSISTANT_POWERUP,
 	STAT_VEHICLE,
 	STAT_VEHICLEHP,
 } statIndex_t;
@@ -226,43 +216,6 @@ typedef enum {
 #define EF_BOUNCE 16 // for missiles
 #define EF_NODRAW 32 // may have an event, but no model (unspawned items)
 #define EF_FIRING 64 // for lightning gun
-#define EF_KAMIKAZE 128
-#define EF_TALK 256 // draw a talk balloon
-
-typedef enum {
-	PW_NONE,
-
-	PW_QUAD,
-	PW_BATTLESUIT,
-	PW_HASTE,
-	PW_INVIS,
-	PW_REGEN,
-	PW_FLIGHT,
-
-	PW_REDFLAG,
-	PW_BLUEFLAG,
-	PW_NEUTRALFLAG,
-
-	PW_SCOUT,
-	PW_GUARD,
-	PW_DOUBLER,
-	PW_AMMOREGEN,
-	PW_INVULNERABILITY,
-
-	PW_NUM_POWERUPS
-} powerup_t;
-
-typedef enum {
-	HI_NONE,
-
-	HI_TELEPORTER,
-	HI_MEDKIT,
-	HI_KAMIKAZE,
-	HI_PORTAL,
-	HI_INVULNERABILITY,
-
-	HI_NUM_HOLDABLE
-} holdable_t;
 
 typedef enum {
 	WP_NONE,
@@ -277,22 +230,9 @@ typedef enum {
 	WP_RAILGUN,
 	WP_PLASMAGUN,
 	WP_BFG,
-	WP_GRAPPLING_HOOK,
 	WP_NAILGUN,
 	WP_PROX_LAUNCHER,
 	WP_CHAINGUN,
-
-	// New weapons here!
-	WP_FLAMETHROWER,
-	WP_ANTIMATTER,
-	WP_THROWER,
-	WP_BOUNCER,
-	WP_THUNDER,
-	WP_EXPLODER,
-	WP_KNOCKER,
-	WP_PROPGUN,
-	WP_REGENERATOR,
-	WP_NUKE,
 
 	// Sandbox weapons here!
 	WP_PHYSGUN,
@@ -319,15 +259,10 @@ typedef enum {
 
 typedef enum {
 	MT_NONE,
-
 	MT_GENERAL,
-	MT_HOOK,
 	MT_MINE,
 
-	MT_PROPS,
-
-	MT_PROPGUN,
-	MT_NUKE,
+	MT_PROPS, //HERE PROPS AFTER THIS
 
 	MISSILETYPES_NUM
 } missileType_t;
@@ -458,7 +393,6 @@ typedef enum {
 	EV_FALL_MEDIUM,
 	EV_FALL_FAR,
 
-	EV_JUMP_PAD,
 	EV_JUMP,
 
 	EV_WATER_TOUCH,
@@ -470,23 +404,6 @@ typedef enum {
 	EV_NOAMMO,
 	EV_CHANGE_WEAPON,
 	EV_FIRE_WEAPON,
-
-	EV_USE_ITEM0,
-	EV_USE_ITEM1,
-	EV_USE_ITEM2,
-	EV_USE_ITEM3,
-	EV_USE_ITEM4,
-	EV_USE_ITEM5,
-	EV_USE_ITEM6,
-	EV_USE_ITEM7,
-	EV_USE_ITEM8,
-	EV_USE_ITEM9,
-	EV_USE_ITEM10,
-	EV_USE_ITEM11,
-	EV_USE_ITEM12,
-	EV_USE_ITEM13,
-	EV_USE_ITEM14,
-	EV_USE_ITEM15,
 
 	EV_ITEM_RESPAWN,
 	EV_ITEM_POP,
@@ -512,23 +429,14 @@ typedef enum {
 	EV_BULLET,
 
 	EV_PAIN,
-	EV_DEATH1,
-	EV_DEATH2,
-	EV_DEATH3,
 
 	EV_OBITUARY,
 	EV_GIB_PLAYER,
 
 	EV_PROXIMITY_MINE_STICK,
 	EV_PROXIMITY_MINE_TRIGGER,
-	EV_KAMIKAZE,
-	EV_OBELISKEXPLODE,
-	EV_OBELISKPAIN,
-	EV_INVUL_IMPACT,
-	EV_JUICED,
 	EV_LIGHTNINGBOLT,
 	EV_STOPLOOPINGSOUND,
-	EV_TAUNT,
 
 	EV_EXPLOSION,
 	EV_PARTICLES_GRAVITY,
@@ -539,64 +447,9 @@ typedef enum {
 	EV_WATERPUFF,
 
 	EV_HORN,
-	EV_CRASH25,
 	EV_OT1_IMPACT,
 	EV_GRAVITYSOUND
 } entity_event_t;
-
-typedef enum { GTS_RED_CAPTURE, GTS_BLUE_CAPTURE, GTS_RED_RETURN, GTS_BLUE_RETURN, GTS_RED_TAKEN, GTS_BLUE_TAKEN, GTS_REDOBELISK_ATTACKED, GTS_BLUEOBELISK_ATTACKED, GTS_REDTEAM_SCORED, GTS_BLUETEAM_SCORED, GTS_REDTEAM_TOOK_LEAD, GTS_BLUETEAM_TOOK_LEAD, GTS_TEAMS_ARE_TIED, GTS_KAMIKAZE } global_team_sound_t;
-
-// animations
-typedef enum {
-	BOTH_DEATH1,
-	BOTH_DEAD1,
-	BOTH_DEATH2,
-	BOTH_DEAD2,
-	BOTH_DEATH3,
-	BOTH_DEAD3,
-
-	TORSO_GESTURE,
-	TORSO_ATTACK,
-	TORSO_ATTACK2,
-	TORSO_DROP,
-	TORSO_RAISE,
-	TORSO_STAND,
-	TORSO_STAND2,
-
-	LEGS_WALKCR,
-	LEGS_WALK,
-	LEGS_RUN,
-	LEGS_BACK,
-	LEGS_SWIM,
-	LEGS_JUMP,
-	LEGS_LAND,
-	LEGS_JUMPB,
-	LEGS_LANDB,
-	LEGS_IDLE,
-	LEGS_IDLECR,
-	LEGS_TURN,
-
-	MAX_ANIMATIONS,
-
-	LEGS_BACKCR,   // automatic generated
-	LEGS_BACKWALK, // automatic generated
-
-	MAX_TOTALANIMATIONS
-} animNumber_t;
-
-typedef struct animation_s {
-	int firstFrame;
-	int numFrames;
-	int loopFrames;  // 0 to numFrames
-	int frameLerp;   // msec between frames
-	int initialLerp; // msec to get to first frame
-	int reversed;    // true if animation is reversed
-	int flipflop;    // true if animation should flipflop back to base
-} animation_t;
-
-// flip the togglebit every time an animation
-// changes so a restart of the same anim can be detected
-#define ANIM_TOGGLEBIT 128
 
 typedef enum {
 	TEAM_FREE,
@@ -621,9 +474,6 @@ typedef enum {
 	MOD_TELEFRAG,
 	MOD_FALLING,
 	MOD_SUICIDE,
-	MOD_TRIGGER_HURT,
-	MOD_KAMIKAZE,
-	MOD_JUICED,
 	MOD_CAR,
 	MOD_CAREXPLODE,
 	MOD_PROP
@@ -650,10 +500,7 @@ typedef enum {
 	ET_MOVER,
 	ET_PORTAL,
 	ET_SPEAKER,
-	ET_PUSH_TRIGGER,
-	ET_TELEPORT_TRIGGER,
 	ET_INVISIBLE,
-	ET_GRAPPLE,
 	ET_TEAM,
 
 	ET_EVENTS
@@ -665,21 +512,6 @@ typedef enum {
 #define MAX_BOTS 8192
 #define MAX_BOTS_TEXT 25000
 
-#define KAMI_SHOCKWAVE_STARTTIME 0
-#define KAMI_SHOCKWAVEFADE_STARTTIME 1500
-#define KAMI_SHOCKWAVE_ENDTIME 2000
-#define KAMI_EXPLODE_STARTTIME 250
-#define KAMI_IMPLODE_STARTTIME 2000
-#define KAMI_IMPLODE_ENDTIME 2250
-#define KAMI_SHOCKWAVE2_STARTTIME 2000
-#define KAMI_SHOCKWAVE2FADE_STARTTIME 2500
-#define KAMI_SHOCKWAVE2_ENDTIME 3000
-#define KAMI_SHOCKWAVEMODEL_RADIUS 88
-#define KAMI_BOOMSPHEREMODEL_RADIUS 72
-#define KAMI_SHOCKWAVE_MAXRADIUS 1320
-#define KAMI_BOOMSPHERE_MAXRADIUS 720
-#define KAMI_SHOCKWAVE2_MAXRADIUS 704
-
 // bg_alloc.c
 void *G_Alloc(int size);
 void G_InitMemory(void);
@@ -687,8 +519,6 @@ void G_InitMemory(void);
 // bg_misc.c
 int BG_FindNPCTypeID(const char *name);
 qboolean BG_FactionShouldAttack(int attackerFaction, int targetFaction);
-item_t *BG_FindItemForPowerup(powerup_t pw);
-item_t *BG_FindItemForHoldable(holdable_t pw);
 item_t *BG_FindItemForWeapon(weapon_t weapon);
 item_t *BG_FindItem(const char *pickupName);
 qboolean BG_CheckClassname(const char *classname);
@@ -701,7 +531,6 @@ void BG_EvaluateTrajectoryDelta(const trajectory_t *tr, int atTime, vec3_t resul
 void ST_EvaluateTrajectory(const trajectory_t *tr, int atTime, vec3_t result, float mass);
 void ST_EvaluateTrajectoryDelta(const trajectory_t *tr, int atTime, vec3_t result, float mass);
 void BG_AddPredictableEventToPlayerstate(int newEvent, int eventParm, playerState_t *ps);
-void BG_TouchJumpPad(playerState_t *ps, entityState_t *jumppad);
 void BG_PlayerStateToEntityState(playerState_t *ps, entityState_t *s, qboolean snap);
 qboolean BG_InVehicle(int id);
 
