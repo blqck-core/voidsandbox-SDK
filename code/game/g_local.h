@@ -478,10 +478,6 @@ void G_SpawnItem(gentity_t *ent, item_t *item);
 void G_RunItem(gentity_t *ent);
 
 // g_main.c
-void QDECL G_Printf(const char *fmt, ...);
-void QDECL G_Error(const char *fmt, ...);
-void QDECL Com_Error(int level, const char *error, ...);
-void QDECL Com_Printf(const char *msg, ...);
 void CalculateRanks(void);
 void MoveClientToIntermission(gentity_t *ent);
 void FindIntermissionPoint(void);

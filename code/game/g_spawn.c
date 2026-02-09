@@ -130,7 +130,7 @@ static qboolean G_CallSpawn(gentity_t *ent) {
 	Com_sprintf(itemname, sizeof(itemname), "%s", ent->classname);
 
 	if(itemname[0] == 0) {
-		G_Printf("G_CallSpawn: NULL classname\n");
+		print("G_CallSpawn: NULL classname\n");
 		return qfalse;
 	}
 
@@ -151,7 +151,7 @@ static qboolean G_CallSpawn(gentity_t *ent) {
 		}
 	}
 
-	G_Printf("%s doesn't have a spawn function\n", itemname);
+	print("%s doesn't have a spawn function\n", itemname);
 	return qfalse;
 }
 
@@ -307,9 +307,7 @@ static char *G_AddSpawnVarToken(const char *string) {
 	char *dest;
 
 	l = strlen(string);
-	if(level.numSpawnVarChars + l + 1 > MAX_SPAWN_VARS_CHARS) {
-		G_Error("G_AddSpawnVarToken: MAX_SPAWN_VARS");
-	}
+	iferr(level.numSpawnVarChars + l + 1 > MAX_SPAWN_VARS_CHARS);
 
 	dest = level.spawnVarChars + level.numSpawnVarChars;
 	memcpy(dest, string, l + 1);
@@ -341,32 +339,22 @@ static qboolean G_ParseSpawnVars(void) {
 		// end of spawn string
 		return qfalse;
 	}
-	if(com_token[0] != '{') {
-		G_Error("G_ParseSpawnVars: found %s when expecting {", com_token);
-	}
+	iferr(com_token[0] != '{');
 
 	// go through all the key / value pairs
 	while(1) {
 		// parse key
-		if(!trap_GetEntityToken(keyname, sizeof(keyname))) {
-			G_Error("G_ParseSpawnVars: EOF without closing brace");
-		}
+		iferr(!trap_GetEntityToken(keyname, sizeof(keyname)));
 
 		if(keyname[0] == '}') {
 			break;
 		}
 
 		// parse value
-		if(!trap_GetEntityToken(com_token, sizeof(com_token))) {
-			G_Error("G_ParseSpawnVars: EOF without closing brace");
-		}
+		iferr(!trap_GetEntityToken(com_token, sizeof(com_token)));
 
-		if(com_token[0] == '}') {
-			G_Error("G_ParseSpawnVars: closing brace without data");
-		}
-		if(level.numSpawnVars == MAX_SPAWN_VARS) {
-			G_Error("G_ParseSpawnVars: MAX_SPAWN_VARS");
-		}
+		iferr(com_token[0] == '}');
+		iferr(level.numSpawnVars == MAX_SPAWN_VARS);
 		level.spawnVars[level.numSpawnVars][0] = G_AddSpawnVarToken(keyname);
 		level.spawnVars[level.numSpawnVars][1] = G_AddSpawnVarToken(com_token);
 		level.numSpawnVars++;
@@ -379,9 +367,7 @@ static void SP_worldspawn(void) {
 	char *s;
 
 	G_SpawnString("classname", "", &s);
-	if(Q_stricmp(s, "worldspawn")) {
-		G_Error("SP_worldspawn: The first entity isn't 'worldspawn'");
-	}
+	iferr(Q_stricmp(s, "worldspawn"));
 
 	// make some data visible to connecting client
 	trap_SetConfigstring(CS_LEVEL_START_TIME, va("%i", level.startTime));
@@ -425,9 +411,7 @@ void G_SpawnEntitiesFromString(void) {
 	// the worldspawn is not an actual entity, but it still
 	// has a "spawn" function to perform any global setup
 	// needed by a level (setting configstrings or cvars, etc)
-	if(!G_ParseSpawnVars()) {
-		G_Error("SpawnEntities: no entities");
-	}
+	iferr(!G_ParseSpawnVars());
 	SP_worldspawn();
 
 	// parse ents
@@ -635,15 +619,11 @@ static void G_LoadMapfile(char *filename) {
 	len = FS_Open(filename, &f, FS_READ);
 
 	if(!f) {
-		G_Printf("%s", va(S_COLOR_YELLOW "mapfile not found: %s\n", filename));
+		print("%s", va(S_COLOR_YELLOW "mapfile not found: %s\n", filename));
 		return;
 	}
 
-	if(len >= 2500000 * 6) {
-		trap_Error(va(S_COLOR_RED "map file too large: %s is %i, max allowed is %i", filename, len, 2500000 * 6));
-		FS_Close(f);
-		return;
-	}
+	iferr(len >= 2500000 * 6);
 
 	FS_Read(mapbuffer, len, f);
 	if(len <= 10) return;
@@ -651,8 +631,6 @@ static void G_LoadMapfile(char *filename) {
 	FS_Close(f);
 
 	G_ClearEntities();
-
-	COM_Compress(mapbuffer);
 
 	for(i = 0; i < MAX_MAPFILE_LENGTH; i++) {
 		// Filter comments( start at # and end at break )
@@ -687,13 +665,13 @@ static void G_LoadMapfile(char *filename) {
 	}
 	maxTokennum = tokenNum;
 
-	G_Printf("Mapfile parser found %i tokens\n", maxTokennum);
+	print("Mapfile parser found %i tokens\n", maxTokennum);
 
 	for(tokenNum = 0; tokenNum < maxTokennum; tokenNum++) {
 		if(strcmp(tokens2[tokenNum].value, "{") == 0) {
 			lpar = tokenNum;
 			if(G_AbeforeB2((char *)"{", (char *)"}", tokens2, tokenNum + 2)) {
-				G_Printf("error: \"}\" expected at %s\n", tokens2[tokenNum].value);
+				print("error: \"}\" expected at %s\n", tokens2[tokenNum].value);
 				break;
 			}
 			rpar = G_FindNextToken2((char *)"}", tokens2, tokenNum + 2);
@@ -709,7 +687,7 @@ void G_LoadMapfile_f(void) {
 	char filename[MAX_QPATH];
 
 	if(trap_Argc() < 2) {
-		G_Printf("Usage: loadmap <filename>\n");
+		print("Usage: loadmap <filename>\n");
 		return;
 	}
 
@@ -733,7 +711,7 @@ void G_WriteMapfile_f(void) {
 	byte *b;
 
 	if(trap_Argc() < 2) {
-		G_Printf("Usage: savemap <filename>\n");
+		print("Usage: savemap <filename>\n");
 		return;
 	}
 
@@ -798,7 +776,7 @@ void G_DeleteMapfile_f(void) {
 	char *string;
 
 	if(trap_Argc() < 2) {
-		G_Printf("Usage: deletemap <filename>\n");
+		print("Usage: deletemap <filename>\n");
 		return;
 	}
 

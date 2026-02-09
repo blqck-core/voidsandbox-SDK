@@ -318,10 +318,7 @@ static void CG_Item(centity_t *cent) {
 	weaponInfo_t *wi;
 
 	es = &cent->currentState;
-	if(es->modelindex >= gameInfoItemsNum) {
-		CG_Error("Bad item index %i on entity", es->modelindex);
-		return;
-	}
+	iferr(es->modelindex >= gameInfoItemsNum);
 
 	CG_RegisterItemVisuals(es->modelindex);
 
@@ -573,9 +570,7 @@ static void CG_InterpolateEntityPosition(centity_t *cent, qboolean STPhys) {
 
 	// it would be an internal error to find an entity that interpolates without
 	// a snapshot ahead of the current one
-	if(cg.nextSnap == NULL) {
-		CG_Error("CG_InterpoateEntityPosition: cg.nextSnap == NULL");
-	}
+	iferr(cg.nextSnap == NULL);
 
 	f = cg.frameInterpolation;
 
@@ -679,7 +674,7 @@ static void CG_AddCEntity(centity_t *cent) {
 	CG_EntityEffects(cent);
 
 	switch(cent->currentState.eType) {
-	default: CG_Error("Bad entity type: %i\n", cent->currentState.eType); break;
+	default: err("Bad entity type\n"); break;
 	case ET_INVISIBLE: break;
 	case ET_GENERAL: CG_General(cent); break;
 	case ET_PLAYER: CG_Player(cent); break;

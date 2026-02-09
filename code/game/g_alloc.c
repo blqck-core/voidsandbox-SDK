@@ -11,10 +11,7 @@ static int allocPoint;
 void *G_Alloc(int size) {
 	char *p;
 
-	if(allocPoint + size > POOLSIZE) {
-		G_Error("G_Alloc: failed on allocation of %i bytes\n", size);
-		return NULL;
-	}
+	iferr(allocPoint + size > POOLSIZE);
 
 	p = &memoryPool[allocPoint];
 	allocPoint += (size + 31) & ~31;

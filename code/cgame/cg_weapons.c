@@ -343,10 +343,7 @@ void CG_RegisterWeapon(int weaponNum) {
 		}
 	}
 
-	if(!item->classname) {
-		CG_Error("Couldn't find weapon %i", weaponNum);
-		return;
-	}
+	iferr(!item->classname);
 	CG_RegisterItemVisuals(item - gameInfoItems);
 
 	// load cmodel before model so filecache works
@@ -367,16 +364,6 @@ void CG_RegisterWeapon(int weaponNum) {
 		}
 	}
 	if(ammo->classname && ammo->world_model) weaponInfo->ammoModel = trap_R_RegisterModel(ammo->world_model);
-
-	Q_StringCopy(path, item->world_model, MAX_QPATH);
-	COM_StripExtension(path, path, sizeof(path));
-	strcat(path, "_flash.md3");
-	weaponInfo->flashModel = trap_R_RegisterModel(path);
-
-	Q_StringCopy(path, item->world_model, MAX_QPATH);
-	COM_StripExtension(path, path, sizeof(path));
-	strcat(path, "_hand.md3");
-	weaponInfo->handsModel = trap_R_RegisterModel(path);
 
 	if(!weaponInfo->handsModel) weaponInfo->handsModel = trap_R_RegisterModel("models/weapons2/shotgun/shotgun_hand.md3");
 
@@ -525,7 +512,7 @@ void CG_RegisterItemVisuals(int itemNum) {
 	itemInfo_t *itemInfo;
 	item_t *item;
 
-	if(itemNum < 0 || itemNum >= gameInfoItemsNum) CG_Error("CG_RegisterItemVisuals: itemNum %d out of range [0-%d]", itemNum, gameInfoItemsNum - 1);
+	iferr(itemNum < 0 || itemNum >= gameInfoItemsNum);
 
 	itemInfo = &cg_items[itemNum];
 	if(itemInfo->registered) return;
@@ -976,10 +963,7 @@ void CG_FireWeapon(centity_t *cent) {
 	ent = &cent->currentState;
 
 	if(ent->weapon == WP_NONE) return;
-	if(ent->weapon > WEAPONS_NUM) {
-		CG_Error("CG_FireWeapon: ent->weapon > WEAPONS_NUM");
-		return;
-	}
+	iferr(ent->weapon > WEAPONS_NUM);
 	weap = &cg_weapons[ent->weapon];
 
 	// mark the entity as muzzle flashing, so when it is added it will

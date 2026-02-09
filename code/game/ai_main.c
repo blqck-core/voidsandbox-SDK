@@ -404,7 +404,7 @@ static int BotAI(int client, float thinktime) {
 
 	bs = botstates[client];
 	if(!bs || !bs->inuse) {
-		G_Printf("BotAI: client %d is not setup\n", client);
+		print("BotAI: client %d is not setup\n", client);
 		return qfalse;
 	}
 
@@ -442,12 +442,12 @@ int BotAISetupClient(int client, struct bot_settings_s *settings) {
 	bs = botstates[client];
 
 	if(bs && bs->inuse) {
-		G_Printf("BotAISetupClient: client %d already setup\n", client);
+		print("BotAISetupClient: client %d already setup\n", client);
 		return qfalse;
 	}
 
 	if(!trap_AAS_Initialized()) {
-		G_Printf("AAS not initialized\n");
+		print("AAS not initialized\n");
 		return qfalse;
 	}
 

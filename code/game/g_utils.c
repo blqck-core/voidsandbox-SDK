@@ -26,9 +26,7 @@ static int G_FindConfigstringIndex(char *name, int start, int max, qboolean crea
 		return 0;
 	}
 
-	if(i == max) {
-		G_Error("G_FindConfigstringIndex: overflow");
-	}
+	iferr(i == max);
 
 	trap_SetConfigstring(start + i, name);
 
@@ -101,7 +99,7 @@ gentity_t *G_PickTarget(char *targetname) {
 	gentity_t *choice[MAXCHOICES];
 
 	if(!targetname) {
-		G_Printf("G_PickTarget called with NULL targetname\n");
+		print("G_PickTarget called with NULL targetname\n");
 		return NULL;
 	}
 
@@ -113,7 +111,7 @@ gentity_t *G_PickTarget(char *targetname) {
 	}
 
 	if(!num_choices) {
-		G_Printf("G_PickTarget: target %s not found\n", targetname);
+		print("G_PickTarget: target %s not found\n", targetname);
 		return NULL;
 	}
 
@@ -152,14 +150,14 @@ void G_UseTargets(gentity_t *ent, gentity_t *activator) {
 	t = NULL;
 	while((t = G_Find(t, FOFS(targetname), ent->target)) != NULL) {
 		if(t == ent) {
-			G_Printf("WARNING: Entity used itself.\n");
+			print("WARNING: Entity used itself.\n");
 		} else {
 			if(t->use) {
 				t->use(t, ent, activator);
 			}
 		}
 		if(!ent->inuse) {
-			G_Printf("entity was removed while using targets\n");
+			print("entity was removed while using targets\n");
 			return;
 		}
 	}
@@ -254,7 +252,7 @@ gentity_t *G_Spawn(void) {
 		}
 	}
 	if(i >= cvarInt("g_maxEntities") - 1) {
-		G_Printf("G_Spawn: no free entities. Check g_maxEntities cvar\n");
+		print("G_Spawn: no free entities. Check g_maxEntities cvar\n");
 		G_FreeEntity(e);
 		return e;
 	}
@@ -372,7 +370,7 @@ void G_AddEvent(gentity_t *ent, int event, int eventParm) {
 	int bits;
 
 	if(!event) {
-		G_Printf("G_AddEvent: zero event added for entity %i\n", ent->s.number);
+		print("G_AddEvent: zero event added for entity %i\n", ent->s.number);
 		return;
 	}
 

@@ -67,13 +67,13 @@ static void G_TouchProp(gentity_t *self, gentity_t *other, trace_t *trace) {
 static void setModel(gentity_t *ent, char *modelName) {
 	int len;
 	if(!ent || !modelName) {
-		Com_Printf("Invalid entity or model name\n");
+		print("Invalid entity or model name\n");
 		return;
 	}
 
 	len = strlen(modelName);
 	if(len == 0) {
-		Com_Printf("Model name is empty\n");
+		print("Model name is empty\n");
 		return;
 	}
 

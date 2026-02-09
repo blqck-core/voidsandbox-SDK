@@ -485,7 +485,7 @@ static void UI_ServerPlayerIcon(const char *modelAndSkin, char *iconName, int ic
 	char *skin;
 	char model[MAX_QPATH];
 
-	Q_StringCopy(model, modelAndSkin, sizeof(model));
+	StringCopy(model, modelAndSkin, sizeof(model));
 	skin = strrchr(model, '/');
 	if(skin) {
 		*skin++ = '\0';
@@ -514,14 +514,6 @@ static void DrawListItemImage(int x, int y, int w, int h, const char *path, menu
 	l->generic.model = trap_R_RegisterModel(path);
 	if(l->generic.model) {
 		UI_DrawModelElement(x, y, w, h, path, l->range);
-		return;
-	}
-
-	info = UI_GetBotInfoByName(itemname);
-	UI_ServerPlayerIcon(Info_ValueForKey(info, "model"), pic, MAX_QPATH);
-	l->generic.shader = trap_R_RegisterShaderNoMip(pic);
-	if(l->generic.shader) {
-		UI_DrawHandlePic(x, y, w, h, l->generic.shader);
 		return;
 	}
 
@@ -648,7 +640,7 @@ static void MField_Draw(mfield_t *edit, int x, int y, qboolean focus, vec4_t col
 
 	if(prestep + drawLen > len) drawLen = len - prestep;
 
-	if(drawLen >= MAX_STRING_CHARS) trap_Error("drawLen >= MAX_STRING_CHARS");
+	iferr(drawLen >= MAX_STRING_CHARS);
 	memcpy(str, edit->buffer + prestep, drawLen);
 	str[drawLen] = 0;
 
@@ -1190,7 +1182,7 @@ void UI_SetHitbox(int id, float x, float y, float w, float h) {
 
 int UI_CButton(int id, float x, float y, float w, float h, char *text, int style, float size, int colortext, int colorbg, int corner, int margin, char *action) {
     if(id >= MAX_MENUITEMS) {
-        trap_Print("^3Menu item limit exceeded");
+        print("^3Menu item limit exceeded");
         return -1;
     }
     uis.items[id].type = MTYPE_BUTTON;
@@ -1199,20 +1191,20 @@ int UI_CButton(int id, float x, float y, float w, float h, char *text, int style
 	uis.items[id].y = y;
 	uis.items[id].w = w;
 	uis.items[id].h = h;
-	Q_StringCopy(uis.items[id].text, text, UI_STRINGLENGTH);
+	StringCopy(uis.items[id].text, text, UI_STRINGLENGTH);
 	uis.items[id].style = style;
 	uis.items[id].size = size;
 	uis.items[id].colortext = colortext;
 	uis.items[id].colorbg = colorbg;
 	uis.items[id].corner = corner;
 	uis.items[id].margin = margin;
-	Q_StringCopy(uis.items[id].action, action, UI_ACTIONLENGTH);
+	StringCopy(uis.items[id].action, action, UI_ACTIONLENGTH);
 	return id;
 }
 
 int UI_CCheckbox(int id, float x, float y, float w, float h, char *text, float size, int colortext, int colorbg, int corner, int margin, char *action) {
     if(id >= MAX_MENUITEMS) {
-        trap_Print("^3Menu item limit exceeded");
+        print("^3Menu item limit exceeded");
         return -1;
     }
     uis.items[id].type = MTYPE_CHECKBOX;
@@ -1221,14 +1213,14 @@ int UI_CCheckbox(int id, float x, float y, float w, float h, char *text, float s
 	uis.items[id].y = y;
 	uis.items[id].w = w;
 	uis.items[id].h = h;
-	Q_StringCopy(uis.items[id].text, text, UI_STRINGLENGTH);
+	StringCopy(uis.items[id].text, text, UI_STRINGLENGTH);
 	uis.items[id].style = 0;
 	uis.items[id].size = size;
 	uis.items[id].colortext = colortext;
 	uis.items[id].colorbg = colorbg;
 	uis.items[id].corner = corner;
 	uis.items[id].margin = margin;
-	Q_StringCopy(uis.items[id].action, action, UI_ACTIONLENGTH);
+	StringCopy(uis.items[id].action, action, UI_ACTIONLENGTH);
 	
 	uis.items[id].value = cvarFloat(uis.items[id].action);
 	return id;
@@ -1236,7 +1228,7 @@ int UI_CCheckbox(int id, float x, float y, float w, float h, char *text, float s
 
 int UI_CSlider(int id, float x, float y, float w, float h, char *text, float size, int colortext, int colorbg, int corner, int margin, char *action, float min, float max, int mode) {
     if(id >= MAX_MENUITEMS) {
-        trap_Print("^3Menu item limit exceeded");
+        print("^3Menu item limit exceeded");
         return -1;
     }
     uis.items[id].type = MTYPE_SLIDER;
@@ -1245,17 +1237,17 @@ int UI_CSlider(int id, float x, float y, float w, float h, char *text, float siz
 	uis.items[id].y = y;
 	uis.items[id].w = w;
 	uis.items[id].h = h;
-	Q_StringCopy(uis.items[id].text, text, UI_STRINGLENGTH);
+	StringCopy(uis.items[id].text, text, UI_STRINGLENGTH);
 	uis.items[id].style = 0;
 	uis.items[id].size = size;
 	uis.items[id].colortext = colortext;
 	uis.items[id].colorbg = colorbg;
 	uis.items[id].corner = corner;
 	uis.items[id].margin = margin;
-	Q_StringCopy(uis.items[id].action, action, UI_ACTIONLENGTH);
+	StringCopy(uis.items[id].action, action, UI_ACTIONLENGTH);
 	
 	uis.items[id].value = cvarFloat(uis.items[id].action);
-	trap_Print(va("^4 Init slider with %f value", cvarFloat(uis.items[id].action)));
+	print(va("^4 Init slider with %f value", cvarFloat(uis.items[id].action)));
 	uis.items[id].min = min;
 	uis.items[id].max = max;
 	uis.items[id].mode = mode;

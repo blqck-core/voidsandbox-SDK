@@ -13,7 +13,7 @@ static void CG_Obituary(entityState_t *ent) {
 	target = ent->otherEntityNum2;
 	mod = ent->eventParm;
 
-	if(target < 0 || target >= MAX_CLIENTS) CG_Error("CG_Obituary: target out of range");
+	iferr(target < 0 || target >= MAX_CLIENTS);
 
 	if(attacker < 0 || attacker >= MAX_CLIENTS) {
 		attackerInfo = NULL;
@@ -23,11 +23,11 @@ static void CG_Obituary(entityState_t *ent) {
 
 	targetInfo = CG_ConfigString(CS_PLAYERS + target);
 	if(!targetInfo) return;
-	Q_StringCopy(targetName, Info_ValueForKey(targetInfo, "n"), sizeof(targetName) - 2);
+	StringCopy(targetName, Info_ValueForKey(targetInfo, "n"), sizeof(targetName) - 2);
 	strcat(targetName, S_COLOR_WHITE);
 
 	if(attackerInfo) {
-		Q_StringCopy(attackerName, Info_ValueForKey(attackerInfo, "n"), sizeof(attackerName) - 2);
+		StringCopy(attackerName, Info_ValueForKey(attackerInfo, "n"), sizeof(attackerName) - 2);
 		strcat(attackerName, S_COLOR_WHITE);
 	}
 
@@ -289,7 +289,7 @@ void CG_EntityEvent(centity_t *cent, vec3_t position) {
 	case EV_PARTICLES_LINEAR: CG_ParticlesFromEntityState(cent->lerpOrigin, PT_LINEAR_BOTH, es); break;
 	case EV_PARTICLES_LINEAR_UP: CG_ParticlesFromEntityState(cent->lerpOrigin, PT_LINEAR_UP, es); break;
 	case EV_PARTICLES_LINEAR_DOWN: CG_ParticlesFromEntityState(cent->lerpOrigin, PT_LINEAR_DOWN, es); break;
-	default: CG_Error("Unknown event: %i", event); break;
+	default: err("Unknown event"); break;
 	}
 }
 

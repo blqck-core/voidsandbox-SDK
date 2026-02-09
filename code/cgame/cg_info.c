@@ -5,7 +5,7 @@
 #include "../shared/javascript.h"
 
 void CG_LoadingString(const char *s, float value) {
-	Q_StringCopy(cg.infoScreenText, va("Loading... %s", s), sizeof(cg.infoScreenText));
+	StringCopy(cg.infoScreenText, va("Loading... %s", s), sizeof(cg.infoScreenText));
 	if(value != -1) cg.infoScreenValue = value;
 	trap_UpdateScreen();
 }
@@ -15,7 +15,7 @@ void CG_LoadingClient(int clientNum) {
 	char personality[MAX_QPATH];
 
 	info = CG_ConfigString(CS_PLAYERS + clientNum);
-	Q_StringCopy(personality, Info_ValueForKey(info, "n"), sizeof(personality));
+	StringCopy(personality, Info_ValueForKey(info, "n"), sizeof(personality));
 	Q_CleanStr(personality);
 	CG_LoadingString(personality, -1);
 }
@@ -60,12 +60,12 @@ void CG_DrawInformation(void) {
 	CG_DrawPic(5 - cgui.wideoffset, 5, 100, 75, levelshot);
 
 	y = 10;
-	Q_StringCopy(buf, Info_ValueForKey(info, "sv_hostname"), 64);
+	StringCopy(buf, Info_ValueForKey(info, "sv_hostname"), 64);
 	Q_CleanStr(buf);
 	ST_DrawString(110 - cgui.wideoffset, y, buf, UI_LEFT, color_white, 1.50);
 	y += 25;
 
-	Q_StringCopy(buf, Info_ValueForKey(info, "sv_mapname"), 64);
+	StringCopy(buf, Info_ValueForKey(info, "sv_mapname"), 64);
 	Q_CleanStr(buf);
 	ST_DrawString(110 - cgui.wideoffset, y, buf, UI_LEFT, color_white, 1.50);
 	y += 25;

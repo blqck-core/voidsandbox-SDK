@@ -109,9 +109,7 @@ static void CG_ConfigStringModified(void) {
 	str = CG_ConfigString(num);
 
 	// do something with it if necessary
-	if(num == CS_MUSIC) {
-		CG_StartMusic();
-	} else if(num == CS_SERVERINFO) {
+	if(num == CS_SERVERINFO) {
 		CG_ParseServerinfo();
 	} else if(num == CS_SCORES1) {
 		cgs.scores1 = atoi(str);
@@ -135,7 +133,6 @@ static void CG_MapRestart(void) {
 	CG_InitMarkPolys();
 	cg.intermissionStarted = qfalse;
 	cg.mapRestart = qtrue;
-	CG_StartMusic();
 	trap_S_ClearLoopingSounds(qtrue);
 }
 
@@ -175,19 +172,19 @@ static void CG_ServerCommand(void) {
 		return;
 	}
 
-	if(!strcmp(cmd, "print")) {
+	if(!strcmp(cmd, "bc")) {
 		// if the message to print is about a client being dropped after a silent drop, suppress the drop message
 		arg = CG_Argv(1);
 		offset = strlen(arg) - strlen("DR_SILENT_DROP") - 1;
 		if(!strcmp(&arg[offset], "DR_SILENT_DROP\n")) return;
 
-		CG_Printf("%s", CG_Argv(1));
+		print("%s", CG_Argv(1));
 		return;
 	}
 
 	if(!strcmp(cmd, "chat")) {
 		trap_S_StartLocalSound(cgs.media.talkSound, CHAN_LOCAL_SOUND);
-		Q_StringCopy(text, CG_Argv(1), MAX_SAY_TEXT);
+		StringCopy(text, CG_Argv(1), MAX_SAY_TEXT);
 		CG_RemoveChatEscapeChar(text);
 		CG_PrintfChat(qfalse, "%s\n", text);
 		return;
@@ -195,7 +192,7 @@ static void CG_ServerCommand(void) {
 
 	if(!strcmp(cmd, "tchat")) {
 		trap_S_StartLocalSound(cgs.media.talkSound, CHAN_LOCAL_SOUND);
-		Q_StringCopy(text, CG_Argv(1), MAX_SAY_TEXT);
+		StringCopy(text, CG_Argv(1), MAX_SAY_TEXT);
 		CG_RemoveChatEscapeChar(text);
 		CG_PrintfChat(qtrue, "%s\n", text);
 		return;
@@ -232,11 +229,11 @@ static void CG_ServerCommand(void) {
 	}
 
 	if(!strcmp(cmd, "t_info")) {
-		Q_StringCopy(cg.entityInfo, CG_Argv(1), sizeof(cg.entityInfo));
+		StringCopy(cg.entityInfo, CG_Argv(1), sizeof(cg.entityInfo));
 		return;
 	}
 
-	CG_Printf("Unknown client game command: %s\n", cmd);
+	print("Unknown client game command: %s\n", cmd);
 }
 
 void CG_ExecuteNewServerCommands(int latestSequence) {

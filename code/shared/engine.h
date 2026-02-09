@@ -70,19 +70,10 @@ int Q_snprintf(char *str, size_t length, const char *fmt, ...);
 int sscanf(const char *buffer, const char *fmt, ...);
 
 // sharedsyscalls
-double sin(double x);
-double cos(double x);
-double acos(double x);
-double atan2(double y, double x);
-double sqrt(double x);
+
 
 #define QDECL
 #define ID_INLINE
-
-// endianness
-short ShortSwap(short l);
-int LongSwap(int l);
-float FloatSwap(const float *f);
 
 #define LittleShort
 #define LittleLong
@@ -386,40 +377,10 @@ void AngleVectors(const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up);
 void PerpendicularVector(vec3_t dst, const vec3_t src);
 void SnapVectorTowards(vec3_t v, vec3_t to);
 
-float Com_Clamp(float min, float max, float value);
-
-char *COM_SkipPath(char *pathname);
-const char *COM_GetExtension(const char *name);
-void COM_StripExtension(const char *in, char *out, int destsize);
-void COM_DefaultExtension(char *path, int maxSize, const char *extension);
-
-char *COM_Parse(char **data_p);
-char *COM_ParseExt(char **data_p, qboolean allowLineBreak);
-int COM_Compress(char *data_p);
-
-#define MAX_TOKENLENGTH 1024
-
-typedef struct pc_token_s {
-	int type;
-	int subtype;
-	int intvalue;
-	float floatvalue;
-	char string[MAX_TOKENLENGTH];
-} pc_token_t;
-
 void QDECL Com_sprintf(char *dest, int size, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 
 // mode parm for FS_FOpenFile
 typedef enum { FS_READ, FS_WRITE, FS_APPEND, FS_APPEND_SYNC } fsMode_t;
-
-typedef enum { FS_SEEK_CUR, FS_SEEK_END, FS_SEEK_SET } fsOrigin_t;
-
-//=============================================
-
-int Q_isprint(int c);
-int Q_islower(int c);
-int Q_isupper(int c);
-int Q_isalpha(int c);
 
 // portable case insensitive compare
 int Q_stricmp(const char *s1, const char *s2);
@@ -431,14 +392,13 @@ char *Q_strupr(char *s1);
 const char *Q_stristr(const char *s, const char *find);
 
 // buffer size safe library replacements
-void Q_StringCopy(char *dest, const char *src, int destsize);
+void StringCopy(char *dest, const char *src, int destsize);
 void Q_strcat(char *dest, int size, const char *src);
 char *Q_CleanStr(char *string);
 
 char *QDECL va(char *format, ...) __attribute__((format(printf, 1, 2)));
 
 float AngleDifference(float ang1, float ang2);
-float VectorToYaw(const vec3_t vec);
 
 //
 // key / value info strings
@@ -450,10 +410,6 @@ void Info_SetValueForKey(char *s, const char *key, const char *value);
 void Info_SetValueForKey_Big(char *s, const char *key, const char *value);
 qboolean Info_Validate(const char *s);
 void Info_NextPair(const char **s, char *key, char *value);
-
-// this is only here so the functions in q_shared.c and bg_*.c can link
-void QDECL Com_Error(int level, const char *error, ...) __attribute__((format(printf, 2, 3))) __attribute__((noreturn));
-void QDECL Com_Printf(const char *msg, ...) __attribute__((format(printf, 1, 2)));
 
 /*
 ==========================================================
@@ -848,4 +804,7 @@ typedef struct qtime_s {
 #define SAY_TELL 2
 
 float VectorDistance(const vec3_t v1, const vec3_t v2);
+void QDECL print(const char *msg, ...);
+void QDECL broadcast(const char *msg, ...);
+void QDECL error(const char *msg, ...);
 #endif // __Q_SHARED_H

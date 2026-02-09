@@ -699,10 +699,6 @@ void CG_AddLocalEntities(void);
 
 // cg_main.c
 void QDECL CG_PrintfChat(qboolean team, const char *msg, ...);
-void QDECL CG_Printf(const char *msg, ...);
-void QDECL CG_Error(const char *msg, ...);
-void QDECL Com_Error(int level, const char *error, ...);
-void QDECL Com_Printf(const char *msg, ...);
 char *CG_Argv(int arg);
 const char *CG_ConfigString(int index);
 

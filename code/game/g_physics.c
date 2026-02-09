@@ -424,9 +424,7 @@ static void Phys_RunPhysThink(gentity_t *ent) {
 	}
 
 	ent->phys_nextthink = 0;
-	if(!ent->phys_think) {
-		G_Error("NULL ent->phys_think");
-	}
+	iferr(!ent->phys_think);
 	ent->phys_think(ent);
 }
 

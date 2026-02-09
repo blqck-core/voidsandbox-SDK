@@ -28,7 +28,7 @@ void CG_InitLocalEntities(void) {
 }
 
 static void CG_FreeLocalEntity(localEntity_t *le) {
-	if(!le->prev) CG_Error("CG_FreeLocalEntity: not active");
+	iferr(!le->prev);
 
 	// remove from the doubly linked active list
 	le->prev->next = le->next;
@@ -509,7 +509,7 @@ void CG_AddLocalEntities(void) {
 			continue;
 		}
 		switch(le->leType) {
-		default: CG_Error("Bad leType: %i", le->leType); break;
+		default: err("Bad leType"); break;
 		case LE_SPRITE_EXPLOSION: CG_AddSpriteExplosion(le); break;
 		case LE_EXPLOSION: CG_AddExplosion(le); break;
 		case LE_FRAGMENT: CG_AddFragment(le); break;

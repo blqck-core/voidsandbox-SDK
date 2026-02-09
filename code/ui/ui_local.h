@@ -202,8 +202,6 @@ typedef struct {
 } uiStatic_t;
 
 // ui_atoms.c
-void QDECL Com_Error(int level, const char *error, ...);
-void QDECL Com_Printf(const char *msg, ...);
 void UI_PushMenu(menuframework_s *menu);
 void UI_PopMenu(void);
 void UI_ForceMenuOff(void);
@@ -225,13 +223,6 @@ void UI_Controls(void);
 // ui_gameinfo.c
 void *UI_Alloc(int size);
 void UI_InitMemory(void);
-void UI_LoadArenas(void);
-void UI_LoadBots(void);
-char *UI_GetBotInfoByName(const char *name);
-int UI_GetNumBots(void);
-void UI_FillListOfMaps(menuelement_s *e, char *gametype, char *names, int namesSize, char **configlist);
-void UI_FillListOfBots(menuelement_s *e, char *names, int namesSize, char **configlist);
-int UI_CountOfMaps(char *gametype);
 
 // ui_main.c
 void UI_CreateCvars(void);

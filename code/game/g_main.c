@@ -40,32 +40,10 @@ intptr_t vmMain(int command, int arg0, int arg1, int arg2) {
 	case BOTAI_START_FRAME: return AI_Frame(arg0);
 	case GETVMCONTEXT: VMContext(&vmargs, &vmresult); return 0;
 	case VMCALL: VMCall(arg0); return 0;
-	default: G_Error("game.qvm: unknown command %i", command); break;
+	default: err("game.qvm: unknown command"); break;
 	}
 
 	return -1;
-}
-
-void QDECL G_Printf(const char *fmt, ...) {
-	va_list argptr;
-	char text[1024];
-
-	va_start(argptr, fmt);
-	Q_vsnprintf(text, sizeof(text), fmt, argptr);
-	va_end(argptr);
-
-	trap_Print(text);
-}
-
-void QDECL G_Error(const char *fmt, ...) {
-	va_list argptr;
-	char text[1024];
-
-	va_start(argptr, fmt);
-	Q_vsnprintf(text, sizeof(text), fmt, argptr);
-	va_end(argptr);
-
-	trap_Error(text);
 }
 
 /*
@@ -112,7 +90,7 @@ static void G_FindTeams(void) {
 		}
 	}
 
-	G_Printf("%i teams with %i entities\n", c, c2);
+	print("%i teams with %i entities\n", c, c2);
 }
 
 /*
@@ -123,7 +101,7 @@ G_CheckCvars
 static void G_CheckCvars(void) {
 	// check some things
 	if(cvarInt("g_gametype") < 0 || cvarInt("g_gametype") >= GT_MAX_GAME_TYPE) {
-		G_Printf("g_gametype %i is out of range, defaulting to 0\n", cvarInt("g_gametype"));
+		print("g_gametype %i is out of range, defaulting to 0\n", cvarInt("g_gametype"));
 		cvarSet("g_gametype", "0");
 	}
 }
@@ -136,8 +114,8 @@ G_InitGame
 static void G_InitGame(int levelTime, int randomSeed, int restart) {
 	int i;
 
-	G_Printf("------- Game Initialization -------\n");
-	G_Printf("gamedate: %s\n", __DATE__);
+	print("------- Game Initialization -------\n");
+	print("gamedate: %s\n", __DATE__);
 
 	srand(randomSeed);
 
@@ -201,7 +179,7 @@ G_ShutdownGame
 static void G_ShutdownGame(int restart) {
 	int i;
 
-	G_Printf("==== ShutdownGame ====\n");
+	print("==== ShutdownGame ====\n");
 
 	// drop all bots from game in single player
 	for(i = 0; i < MAX_CLIENTS; i++) {
@@ -213,28 +191,6 @@ static void G_ShutdownGame(int restart) {
 	// write all the client session data so we can get it back
 	G_WriteSessionData();
 	BotAIShutdown(restart);
-}
-
-void QDECL Com_Error(int level, const char *error, ...) {
-	va_list argptr;
-	char text[1024];
-
-	va_start(argptr, error);
-	Q_vsnprintf(text, sizeof(text), error, argptr);
-	va_end(argptr);
-
-	G_Error("%s", text);
-}
-
-void QDECL Com_Printf(const char *msg, ...) {
-	va_list argptr;
-	char text[1024];
-
-	va_start(argptr, msg);
-	Q_vsnprintf(text, sizeof(text), msg, argptr);
-	va_end(argptr);
-
-	G_Printf("%s", text);
 }
 
 /*
@@ -788,9 +744,7 @@ void G_RunThink(gentity_t *ent) {
 	}
 
 	ent->nextthink = 0;
-	if(!ent->think) {
-		G_Error("NULL ent->think");
-	}
+	iferr(!ent->think);
 	ent->think(ent);
 }
 

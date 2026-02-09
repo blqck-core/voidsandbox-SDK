@@ -717,7 +717,7 @@ void CG_AddNotify(const char *text, int type, int number) {
 
 	for(i = MAX_NOTIFICATIONS - 1; i > 0; i--) cg.notifications[i] = cg.notifications[i - 1];
 
-	Q_StringCopy(cg.notifications[0].text, text, 127);
+	StringCopy(cg.notifications[0].text, text, 127);
 	cg.notifications[0].text[127] = '\0';
 	cg.notifications[0].type = type;
 	cg.notifications[0].number = number;

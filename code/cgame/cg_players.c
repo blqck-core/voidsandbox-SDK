@@ -10,12 +10,12 @@ void CG_UpdateClientInfo(int clientNum) {
 	const char *v;
 
 	if(!configstring[0]) {
-		Q_StringCopy(ci->name, "Disconnected", sizeof(ci->name));
+		StringCopy(ci->name, "Disconnected", sizeof(ci->name));
 		return; // player disconnected
 	}
 
 	v = Info_ValueForKey(configstring, "n");
-	Q_StringCopy(ci->name, v, sizeof(ci->name));
+	StringCopy(ci->name, v, sizeof(ci->name));
 	
 	v = Info_ValueForKey(configstring, "t");
 	ci->team = atoi(v);
@@ -68,7 +68,7 @@ void CG_Player(centity_t *cent) {
 	qboolean yourself;
 	
 	clientNum = cent->currentState.clientNum;
-	if(clientNum < 0 || clientNum >= MAX_CLIENTS) CG_Error("Player out of range!");
+	iferr(clientNum < 0 || clientNum >= MAX_CLIENTS);
 	ci = &cgs.clientinfo[clientNum];
 	
 	if(!ci->infoValid) return;

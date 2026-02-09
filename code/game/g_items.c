@@ -89,9 +89,7 @@ void RespawnItem(gentity_t *ent) {
 		int count;
 		int choice;
 
-		if(!ent->teammaster) {
-			G_Error("RespawnItem: bad teammaster");
-		}
+		iferr(!ent->teammaster);
 		master = ent->teammaster;
 
 		for(count = 0, ent = master; ent; ent = ent->teamchain, count++);
@@ -278,7 +276,7 @@ void FinishSpawningItem(gentity_t *ent) {
 		VectorSet(dest, ent->s.origin[0], ent->s.origin[1], ent->s.origin[2] - 4096);
 		trap_Trace(&tr, ent->s.origin, ent->r.mins, ent->r.maxs, dest, ent->s.number, MASK_SOLID);
 		if(tr.startsolid) {
-			G_Printf("FinishSpawningItem: %s startsolid at %s\n", ent->classname, vtos(ent->s.origin));
+			print("FinishSpawningItem: %s startsolid at %s\n", ent->classname, vtos(ent->s.origin));
 			G_FreeEntity(ent);
 			return;
 		}

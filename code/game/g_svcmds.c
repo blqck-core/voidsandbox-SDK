@@ -11,10 +11,10 @@ static void Svcmd_EntityList_f(void) {
 	check = g_entities + 1;
 	for(e = 1; e < level.num_entities; e++, check++) {
 		if(!check->inuse) continue;
-		G_Printf("%3i: ", e);
+		print("%3i: ", e);
 
-		if(check->classname) G_Printf("%s", check->classname);
-		G_Printf("\n");
+		if(check->classname) print("%s", check->classname);
+		print("\n");
 	}
 }
 
@@ -27,13 +27,13 @@ static gclient_t *ClientForString(const char *s) {
 	if(s[0] >= '0' && s[0] <= '9') {
 		idnum = atoi(s);
 		if(idnum < 0 || idnum >= level.maxclients) {
-			Com_Printf("Bad client slot: %i\n", idnum);
+			print("Bad client slot: %i\n", idnum);
 			return NULL;
 		}
 
 		cl = &level.clients[idnum];
 		if(cl->pers.connected == CON_DISCONNECTED) {
-			G_Printf("Client %i is not connected\n", idnum);
+			print("Client %i is not connected\n", idnum);
 			return NULL;
 		}
 		return cl;
@@ -46,7 +46,7 @@ static gclient_t *ClientForString(const char *s) {
 		if(!Q_stricmp(cl->pers.netname, s)) return cl;
 	}
 
-	G_Printf("User %s is not on the server\n", s);
+	print("User %s is not on the server\n", s);
 	return NULL;
 }
 
@@ -109,7 +109,7 @@ qboolean ConsoleCommand(void) {
 		}
 	}
 
-	if(cvarInt("g_dedicated")) G_Printf("unknown command: %s\n", cmd);
+	if(cvarInt("g_dedicated")) print("unknown command: %s\n", cmd);
 
 	return qfalse;
 }

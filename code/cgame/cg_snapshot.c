@@ -95,8 +95,8 @@ static void CG_TransitionSnapshot(void) {
 	snapshot_t *oldFrame;
 	int i;
 
-	if(!cg.snap) CG_Error("CG_TransitionSnapshot: NULL cg.snap");
-	if(!cg.nextSnap) CG_Error("CG_TransitionSnapshot: NULL cg.nextSnap");
+	iferr(!cg.snap);
+	iferr(!cg.nextSnap);
 
 	// execute any server string commands before transitioning entities
 	CG_ExecuteNewServerCommands(cg.nextSnap->serverCommandSequence);
@@ -206,7 +206,7 @@ static snapshot_t *CG_ReadNextSnapshot(void) {
 	snapshot_t *dest;
 
 	if(cg.latestSnapshotNum > cgs.processedSnapshotNum + 1000) {
-		CG_Printf("WARNING: CG_ReadNextSnapshot: way out of range, %i > %i", cg.latestSnapshotNum, cgs.processedSnapshotNum);
+		print("WARNING: CG_ReadNextSnapshot: way out of range, %i > %i", cg.latestSnapshotNum, cgs.processedSnapshotNum);
 	}
 
 	while(cgs.processedSnapshotNum < cg.latestSnapshotNum) {
@@ -264,7 +264,7 @@ void CG_ProcessSnapshots(void) {
 	// see what the latest snapshot the client system has is
 	trap_GetCurrentSnapshotNumber(&n, &cg.latestSnapshotTime);
 	if(n != cg.latestSnapshotNum) {
-		if(n < cg.latestSnapshotNum) CG_Error("CG_ProcessSnapshots: n < cg.latestSnapshotNum");
+		iferr(n < cg.latestSnapshotNum);
 		cg.latestSnapshotNum = n;
 	}
 
@@ -294,7 +294,7 @@ void CG_ProcessSnapshots(void) {
 			CG_SetNextSnap(snap);
 
 			// if time went backwards, we have a level restart
-			if(cg.nextSnap->serverTime < cg.snap->serverTime) CG_Error("CG_ProcessSnapshots: Server time went backwards");
+			iferr(cg.nextSnap->serverTime < cg.snap->serverTime);
 		}
 
 		// if our time is < nextFrame's, we have a nice interpolating state
@@ -305,7 +305,7 @@ void CG_ProcessSnapshots(void) {
 	} while(1);
 
 	// assert our valid conditions upon exiting
-	if(cg.snap == NULL) CG_Error("CG_ProcessSnapshots: cg.snap == NULL");
+	iferr(cg.snap == NULL);
 	if(cg.time < cg.snap->serverTime) cg.time = cg.snap->serverTime;
-	if(cg.nextSnap != NULL && cg.nextSnap->serverTime <= cg.time) CG_Error("CG_ProcessSnapshots: cg.nextSnap->serverTime <= cg.time");
+	iferr(cg.nextSnap != NULL && cg.nextSnap->serverTime <= cg.time);
 }

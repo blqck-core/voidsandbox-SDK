@@ -279,7 +279,7 @@ qboolean BG_CanItemBeGrabbed(int gametype, const entityState_t *ent, const playe
 		if(ps->stats[STAT_HEALTH] >= MAX_PLAYER_HEALTH) return qfalse;
 		return qtrue;
 	case IT_NULL: return qfalse;
-	default: Com_Printf("BG_CanItemBeGrabbed: unknown type %d\n", item->giType); break;
+	default: print("BG_CanItemBeGrabbed: unknown type %d\n", item->giType); break;
 	}
 
 	return qfalse;
@@ -423,7 +423,7 @@ void ST_EvaluateTrajectory(const trajectory_t *tr, int atTime, vec3_t result, fl
 		VectorMA(tr->trBase, deltaTime, tr->trDelta, result);
 		break;
 	default:
-		// Com_Error( ERR_DROP, "ST_EvaluateTrajectory: unknown trType: %i", tr->trTime );
+		err("unknown trType");
 		break;
 	}
 }
@@ -468,7 +468,7 @@ void ST_EvaluateTrajectoryDelta(const trajectory_t *tr, int atTime, vec3_t resul
 		result[2] -= (cvarFloat("g_gravity") * (mass * 0.50)) * deltaTime;
 		break;
 	default:
-		// Com_Error( ERR_DROP, "ST_EvaluateTrajectoryDelta: unknown trType: %i", tr->trTime );
+		err("unknown trType");
 		break;
 	}
 }

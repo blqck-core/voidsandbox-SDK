@@ -25,7 +25,7 @@ int vmMain(int command, int arg0, int arg1, int arg2) {
 	case UI_DRAW_CONNECT_SCREEN: UI_DrawConnectScreen(arg0); return 0;
 	case GETVMCONTEXT: VMContext(&vmargs, &vmresult); return 0;
 	case VMCALL: VMCall(arg0); return 0;
-	//default: UI_Error("ui.qvm: unknown command %i", command); break;
+	default: err("ui.qvm: unknown command"); break;
 	}
 	return -1;
 }

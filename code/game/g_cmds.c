@@ -388,7 +388,7 @@ static void G_Say(gentity_t *ent, gentity_t *target, int mode, const char *chatT
 		break;
 	}
 
-	Q_StringCopy(text, chatText, sizeof(text));
+	StringCopy(text, chatText, sizeof(text));
 
 	if(target) {
 		G_SayTo(ent, target, mode, color, name, text);
@@ -396,7 +396,7 @@ static void G_Say(gentity_t *ent, gentity_t *target, int mode, const char *chatT
 	}
 
 	// echo the text to the console
-	if(cvarInt("g_dedicated")) G_Printf("%s%s\n", name, text);
+	if(cvarInt("g_dedicated")) print("%s%s\n", name, text);
 
 	// send it to all the apropriate clients
 	for(j = 0; j < level.maxclients; j++) {
@@ -460,7 +460,6 @@ static void Cmd_Weapon_f(gentity_t *ent) {
 	id = atoi(str);
 
 	if(id >= 0 && id < WEAPONS_NUM) ent->client->ps.weapon = id;
-	G_Printf("Selected weapon: %i\n", id);
 }
 
 static void Cmd_SpawnList_Item_f(gentity_t *ent) {
@@ -537,7 +536,7 @@ static void Cmd_SpawnList_Item_f(gentity_t *ent) {
 	}
 	if(!Q_stricmp(arg01, "npc")) {
 		if(level.numConnectedClients >= cvarInt("g_maxClients")) {
-			G_Printf(S_COLOR_YELLOW "Server is full, increase g_maxClients.\n");
+			print(S_COLOR_YELLOW "Server is full, increase g_maxClients.\n");
 			return;
 		}
 

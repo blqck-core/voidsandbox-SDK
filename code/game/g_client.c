@@ -209,7 +209,7 @@ void ClientUserinfoChanged(int clientNum) {
 	ent->tool_id = atoi(Info_ValueForKey(userinfo, "toolgun_tool"));
 	ent->tool_entity = NULL;
 
-	Q_StringCopy(playerskin, Info_ValueForKey(userinfo, "playerskin"), sizeof(playerskin));
+	StringCopy(playerskin, Info_ValueForKey(userinfo, "playerskin"), sizeof(playerskin));
 
 	npcType = atoi(Info_ValueForKey(userinfo, "npcType"));
 	if(npcType && ent->r.svFlags & SVF_BOT) {

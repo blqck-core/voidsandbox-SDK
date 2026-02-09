@@ -26,7 +26,7 @@ intptr_t vmMain(int command, int arg0, int arg1, int arg2) {
 	case CG_DRAW_ACTIVE_FRAME: CG_DrawActiveFrame(arg0, arg1); return 0;
 	case GETVMCONTEXT: VMContext(&vmargs, &vmresult); return 0;
 	case VMCALL: VMCall(arg0); return 0;
-	default: CG_Error("cgame.qvm: unknown command %i", command); break;
+	default: err("cgame.qvm: unknown command"); break;
 	}
 	return -1;
 }
@@ -65,51 +65,6 @@ void QDECL CG_PrintfChat(qboolean team, const char *msg, ...) {
 		CG_AddToGenericConsole(text, &cgs.chat);
 	}
 	trap_Print(text);
-}
-
-void QDECL CG_Printf(const char *msg, ...) {
-	va_list argptr;
-	char text[1024];
-
-	va_start(argptr, msg);
-	Q_vsnprintf(text, sizeof(text), msg, argptr);
-	va_end(argptr);
-
-	CG_AddToGenericConsole(text, &cgs.console);
-	trap_Print(text);
-}
-
-void QDECL CG_Error(const char *msg, ...) {
-	va_list argptr;
-	char text[1024];
-
-	va_start(argptr, msg);
-	Q_vsnprintf(text, sizeof(text), msg, argptr);
-	va_end(argptr);
-
-	trap_Error(text);
-}
-
-void QDECL Com_Error(int level, const char *error, ...) {
-	va_list argptr;
-	char text[1024];
-
-	va_start(argptr, error);
-	Q_vsnprintf(text, sizeof(text), error, argptr);
-	va_end(argptr);
-
-	CG_Error("%s", text);
-}
-
-void QDECL Com_Printf(const char *msg, ...) {
-	va_list argptr;
-	char text[1024];
-
-	va_start(argptr, msg);
-	Q_vsnprintf(text, sizeof(text), msg, argptr);
-	va_end(argptr);
-
-	CG_Printf("%s", text);
 }
 
 char *CG_Argv(int arg) {
@@ -390,19 +345,8 @@ static void CG_ImportModelsOBJ(void) {
 }
 
 const char *CG_ConfigString(int index) {
-	if(index < 0 || index >= MAX_CONFIGSTRINGS) CG_Error("CG_ConfigString: bad index: %i", index);
+	iferr(index < 0 || index >= MAX_CONFIGSTRINGS);
 	return cgs.gameState.stringData + cgs.gameState.stringOffsets[index];
-}
-
-static void CG_StartMusic(void) {
-	char *s;
-	char parm1[MAX_QPATH], parm2[MAX_QPATH];
-
-	// start the background music
-	s = (char *)CG_ConfigString(CS_MUSIC);
-	Q_StringCopy(parm1, COM_Parse(&s), sizeof(parm1));
-	Q_StringCopy(parm2, COM_Parse(&s), sizeof(parm2));
-	trap_S_StartBackgroundTrack(parm1, parm2);
 }
 
 /*
@@ -467,7 +411,6 @@ static void CG_Init(int serverMessageNum, int serverCommandSequence, int clientN
 	// Make sure we have update values (scores)
 	CG_SetConfigValues();
 	CG_LoadingString("Loaded!", 1.00);
-	CG_StartMusic();
 	CG_LoadingString("", 0.0);
 	trap_S_ClearLoopingSounds(qtrue);
 

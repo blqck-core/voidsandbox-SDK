@@ -82,7 +82,7 @@ static void Guided_Missile_Think(gentity_t *missile) {
 	gentity_t *player = missile->parent;
 
 	if(!player) {
-		G_Printf("Guided_Missile_Think : missile has no owner!\n");
+		print("Guided_Missile_Think : missile has no owner!\n");
 		return;
 	}
 

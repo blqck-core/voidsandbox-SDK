@@ -153,7 +153,7 @@ localEntity_t *CG_MakeExplosion(vec3_t origin, vec3_t dir, qhandle_t hModel, qha
 	int offset;
 	vec3_t tmpVec, newOrigin;
 
-	if(msec <= 0) CG_Error("CG_MakeExplosion: msec = %i", msec);
+	iferr(msec <= 0);
 
 	// skew the time a bit so they aren't all in sync
 	offset = rand() & 63;

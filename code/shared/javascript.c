@@ -29,7 +29,7 @@ void JS_Float(float number) {
 
 void JS_String(const char *string) {
     vmresult.t = JS_TYPE_STRING;
-    Q_StringCopy(vmresult.v.s, string, MAX_JS_STRINGSIZE);
+    StringCopy(vmresult.v.s, string, MAX_JS_STRINGSIZE);
 }
 
 void JSE_Int(int* number) {
@@ -48,9 +48,9 @@ void JSE_Float(float* number) {
 
 void JSE_String(char* string, size_t maxSize) {
     foundEntry = qtrue;
-    if(vmargs.t[VALUEINDEX] != JS_TYPE_NONE) Q_StringCopy(string, vmargs.v[VALUEINDEX].s, maxSize);
+    if(vmargs.t[VALUEINDEX] != JS_TYPE_NONE) StringCopy(string, vmargs.v[VALUEINDEX].s, maxSize);
     vmresult.t = JS_TYPE_STRING;
-    Q_StringCopy(vmresult.v.s, string, MAX_JS_STRINGSIZE);
+    StringCopy(vmresult.v.s, string, MAX_JS_STRINGSIZE);
 }
 
 static void JSEntry(const char *entry, const char *name, int idx1, int idx2, int idx3, int idx4) {
@@ -87,7 +87,7 @@ static void JSEntry(const char *entry, const char *name, int idx1, int idx2, int
         if(!strcmp(name, "linescount")) JSE_Int(&console.linescount);
     }
 #endif
-    if(!foundEntry) trap_Print(va("^1Invalid entry: %s in %s \n", name, entry));
+    if(!foundEntry) print(va("^1Invalid entry: %s in %s \n", name, entry));
 }
 
 void VMCall(int func_id) {

@@ -6,27 +6,6 @@
 
 uiStatic_t uis;
 
-void QDECL Com_Error(int level, const char *error, ...) {
-	va_list argptr;
-	char text[1024];
-	va_start(argptr, error);
-	Q_vsnprintf(text, sizeof(text), error, argptr);
-	va_end(argptr);
-
-	trap_Error(va("%s", text));
-}
-
-void QDECL Com_Printf(const char *msg, ...) {
-	va_list argptr;
-	char text[1024];
-
-	va_start(argptr, msg);
-	Q_vsnprintf(text, sizeof(text), msg, argptr);
-	va_end(argptr);
-
-	trap_Print(va("%s", text));
-}
-
 void UI_OnMapStatus(void) {
 	char svinfo[MAX_INFO_STRING];
 
@@ -80,7 +59,7 @@ void UI_SetActiveMenu(uiMenuCommand_t menu) {
 	case UIMENU_NONE: UI_ForceMenuOff(); return;
 	case UIMENU_MAIN: UI_Menu(); return;
 	case UIMENU_INGAME: UI_Menu(); return;
-	default: Com_Printf("UI_SetActiveMenu: bad enum %d\n", menu); break;
+	default: print("UI_SetActiveMenu: bad enum %d\n", menu); break;
 	}
 }
 
@@ -150,8 +129,6 @@ void UI_Init(void) {
 	ST_RegisterCvars();
 
 	UI_InitMemory();
-	UI_LoadArenas();
-	UI_LoadBots();
 	
 	ST_InitCGUI("default");
 
